@@ -1,0 +1,1977 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sewing Line Layout Period — PIB Policy</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+#stage{width:1920px;height:1080px;transform-origin:top left;position:absolute;background:#F1F5F9;overflow:hidden;display:flex;flex-direction:column}
+#graph-content::-webkit-scrollbar{display:none}
+@keyframes arD{0%,100%{opacity:.2;transform:translateY(-5px)}50%{opacity:1;transform:translateY(5px)}}
+@keyframes arU{0%,100%{opacity:.2;transform:translateY(5px)}50%{opacity:1;transform:translateY(-5px)}}
+@keyframes arR{0%,100%{opacity:.2;transform:translateX(-5px)}50%{opacity:1;transform:translateX(5px)}}
+.aD{animation:arD .8s ease-in-out infinite;display:inline-block}
+.aU{animation:arU .8s ease-in-out infinite;display:inline-block}
+.aR{animation:arR .8s ease-in-out infinite;display:inline-block}
+@keyframes dayFadeIn{0%{opacity:.8}100%{opacity:1}}
+@keyframes dayFadeOut{0%{opacity:1}100%{opacity:.8}}
+.day-enter .ws-card{animation:dayFadeIn .15s ease-out both}
+.day-exit .ws-card{animation:dayFadeOut .1s ease-in both}
+button{cursor:pointer;font-family:inherit;transition:all .15s}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div id="left-toolbar" style="position:absolute;top:14px;left:24px;z-index:99">
+    <button onclick="toggleBurger()" title="Menu" style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer">☰</button>
+    <div id="burger-menu" style="display:none;position:absolute;top:52px;left:0;background:#0F2044;border:1.5px solid #1E3A5F;border-radius:10px;padding:8px;flex-direction:column;gap:6px;box-shadow:0 8px 32px rgba(0,0,0,.55);min-width:240px;z-index:100">
+      <button id="import-btn" onclick="triggerBulkImport();closeBurger()" title="Select all day files" style="height:40px;padding:0 16px;border-radius:7px;background:rgba(96,165,250,.15);border:1.5px solid #60A5FA;color:#BFDBFE;font-size:13px;font-weight:700;text-align:left;cursor:pointer;white-space:nowrap">📥 Import Performance Report</button>
+      <button onclick="triggerImportGraphExcel();closeBurger()" style="height:40px;padding:0 16px;border-radius:7px;background:rgba(139,92,246,.15);border:1.5px solid rgba(139,92,246,.55);color:#C4B5FD;font-size:13px;font-weight:700;text-align:left;cursor:pointer;white-space:nowrap">📊 Import Graph</button>
+      <button onclick="exportHTML();closeBurger()" style="height:40px;padding:0 16px;border-radius:7px;background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.50);color:#6EE7B7;font-size:13px;font-weight:700;text-align:left;cursor:pointer">⬇ Export</button>
+      <div style="height:1px;background:#1E3A5F;margin:2px 0"></div>
+      <button onclick="showLCEdit();closeBurger()" style="height:40px;padding:0 16px;border-radius:7px;background:rgba(251,191,36,.10);border:1.5px solid rgba(251,191,36,.40);color:#FDE68A;font-size:13px;font-weight:700;text-align:left;cursor:pointer">✏ LC Edit</button>
+    </div>
+  </div>
+  <div id="layout-top-right" style="position:absolute;top:14px;right:24px;z-index:99;display:flex;gap:8px;align-items:center">
+    <button id="lc-achieved-btn" onclick="toggleLCAchieved()" style="height:44px;padding:0 18px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;letter-spacing:.3px;transition:all .2s">—</button>
+    <button id="layout-graph-note-btn" onclick="openGraphNote(cur,'layout')" style="height:44px;padding:0 18px;border-radius:8px;background:rgba(251,191,36,.12);border:1.5px solid rgba(251,191,36,.45);color:#FDE68A;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;position:relative;text-align:center;white-space:nowrap">📝 Note</button>
+    <button id="layout-graph-btn" onclick="showGraphPanel()" style="width:190px;height:44px;border-radius:8px;background:rgba(139,92,246,.18);border:1.5px solid rgba(139,92,246,.65);color:#C4B5FD;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer;letter-spacing:.3px;position:relative;text-align:center">📊 Graph</button>
+    <button onclick="toggleFS()" id="fsbtn" style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Fullscreen">⛶</button>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirm-modal" style="display:none;position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.55);align-items:center;justify-content:center">
+    <div style="background:#0F2044;border:2px solid #DC2626;border-radius:16px;padding:36px 48px;text-align:center;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+      <div style="font-size:20px;font-weight:800;color:#F8FAFC;margin-bottom:10px">Clear All Data?</div>
+      <div style="font-size:14px;color:#94A3B8;margin-bottom:28px;line-height:1.6">This will remove all imported Excel data and reset the dashboard. This cannot be undone.</div>
+      <div style="display:flex;gap:16px;justify-content:center">
+        <button onclick="cancelClear()" style="padding:0 32px;height:46px;border-radius:10px;font-size:15px;font-weight:700;background:rgba(255,255,255,.08);border:2px solid #334155;color:#94A3B8">Cancel</button>
+        <button onclick="confirmClear()" style="padding:0 32px;height:46px;border-radius:10px;font-size:15px;font-weight:700;background:#DC2626;border:2px solid #EF4444;color:#fff">Yes, Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#0F2044;padding:14px 80px 12px;border-bottom:4px solid #2563EB;text-align:center">
+    <div style="font-size:30px;font-weight:800;color:#F8FAFC;letter-spacing:2px;margin-bottom:4px">SEWING LINE LAYOUT PERIOD VISUAL</div>
+    <div id="hdr-meta" style="margin-bottom:4px"></div>
+    <div id="hdr-sub" style="font-size:12px;color:#64748B;letter-spacing:.5px;margin-bottom:12px"></div>
+    <div id="day-btns" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"></div>
+  </div>
+
+  <div id="stats" style="display:flex;justify-content:center;align-items:center;gap:16px;padding:10px 80px;background:#E2E8F0;border-bottom:2px solid #CBD5E1"></div>
+
+  <div id="pot-bar" style="display:none"></div>
+
+  <div id="grid-wrap" style="display:flex;justify-content:center;align-items:center;flex:1;min-height:0;overflow:hidden;padding-top:14px;padding-bottom:32px;cursor:grab;user-select:none">
+    <div id="grid-scroll" style="display:flex;align-items:stretch;gap:0;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:12px 8px 0;scrollbar-width:none;-ms-overflow-style:none">
+      <div id="inlbl" style="display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 16px;border-right:3px dashed #94A3B8;margin-right:18px;flex-shrink:0">
+        <span style="font-size:20px;font-weight:800;color:#334155;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:4px;text-transform:uppercase">Input</span>
+      </div>
+      <div id="grid" style="display:flex;align-items:flex-start;flex-shrink:0"></div>
+      <div id="outlbl" style="display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 16px;border-left:3px dashed #94A3B8;margin-left:18px;flex-shrink:0">
+        <span style="font-size:20px;font-weight:800;color:#334155;writing-mode:vertical-rl;letter-spacing:4px;text-transform:uppercase">Output</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LC Targets Entry Popup ── -->
+  <div id="lc-edit-popup" onclick="closeLCEdit()" style="display:none;position:absolute;inset:0;z-index:75;background:rgba(0,0,0,.72);align-items:center;justify-content:center">
+    <div onclick="event.stopPropagation()" style="background:#0F2044;border-radius:14px;border:2px solid #2563EB;box-shadow:0 24px 64px rgba(0,0,0,.65);width:520px;max-height:80%;display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid #1E3A5F;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <span style="font-size:15px;font-weight:800;color:#E2E8F0;letter-spacing:.5px">✏ LC Period Targets</span>
+        <button onclick="closeLCEdit()" style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:15px;cursor:pointer">✕</button>
+      </div>
+      <div id="lc-edit-body" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+      <div style="padding:12px 20px;border-top:1px solid #1E3A5F;display:flex;gap:10px;justify-content:flex-end;flex-shrink:0">
+        <button onclick="closeLCEdit()" style="height:38px;padding:0 24px;border-radius:8px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);color:#94A3B8;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onclick="saveLCEdit()" style="height:38px;padding:0 28px;border-radius:8px;background:#2563EB;border:1.5px solid #3B82F6;color:#fff;font-size:13px;font-weight:700;cursor:pointer">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Screenshot Popup (main layout overlay) ── -->
+  <!-- ── Graph Panel ── -->
+  <div id="graph-panel" style="display:none;position:absolute;inset:0;z-index:60;flex-direction:column;background:#0D1B2E">
+    <!-- Mirrored top-right buttons: same position as layout panel -->
+    <div style="position:absolute;top:14px;right:24px;z-index:99;display:flex;gap:8px;align-items:center">
+      <button id="graph-panel-note-btn" onclick="openGraphNote(activeGraphDay,'graph')" style="height:44px;padding:0 18px;border-radius:8px;background:rgba(251,191,36,.12);border:1.5px solid rgba(251,191,36,.45);color:#FDE68A;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;position:relative;text-align:center;white-space:nowrap">📝 Note</button>
+      <button onclick="backToMain()" style="width:190px;height:44px;border-radius:8px;background:rgba(34,197,94,.22);border:1.5px solid rgba(34,197,94,.75);color:#86EFAC;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer;letter-spacing:.3px;text-align:center">← Back to Layout</button>
+      <button id="graph-fsbtn" onclick="toggleFS()" style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.25);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Fullscreen">⛶</button>
+    </div>
+    <div style="background:#0F2044;padding:13px 28px;border-bottom:4px solid #2563EB;display:flex;align-items:center;position:relative;flex-shrink:0">
+      <button id="graph-import-btn" onclick="triggerImportGraphExcel()" style="height:44px;padding:0 22px;border-radius:8px;background:rgba(34,197,94,.15);border:1.5px solid rgba(34,197,94,.55);color:#86EFAC;font-size:14px;font-weight:700;letter-spacing:.4px;white-space:nowrap;cursor:pointer">📥 Import Excel Files</button>
+      <div style="position:absolute;left:50%;transform:translateX(-50%);font-size:32px;font-weight:900;color:#ffffff;letter-spacing:3px;text-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:none">AVG CAPACITY GRAPH</div>
+    </div>
+    <div style="padding:10px 36px 8px;flex-shrink:0;display:flex;align-items:center;gap:8px">
+      <div id="graph-day-btns" style="display:flex;gap:10px;align-items:center;flex:1;flex-wrap:wrap;justify-content:center"></div>
+    </div>
+    <div id="graph-content" style="flex:1;overflow:auto;padding:8px 36px 12px;scrollbar-width:none;-ms-overflow-style:none;cursor:grab;user-select:none"></div>
+    <!-- Import clear-warning popup -->
+    <div id="graph-import-warn-popup" style="display:none;position:absolute;inset:0;z-index:999;background:rgba(0,0,0,.55);align-items:center;justify-content:center">
+      <div style="background:#0F2044;border:2px solid #F59E0B;border-radius:14px;padding:36px 48px;text-align:center;min-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+        <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+        <div style="font-size:18px;font-weight:800;color:#F8FAFC;margin-bottom:8px">Clear All Graph Data?</div>
+        <div id="graph-import-warn-msg" style="font-size:14px;color:#94A3B8;margin-bottom:28px;line-height:1.6"></div>
+        <div style="display:flex;gap:14px;justify-content:center">
+          <button onclick="cancelGraphImport()" style="padding:0 28px;height:42px;border-radius:8px;font-size:14px;font-weight:700;background:rgba(255,255,255,.08);border:2px solid #334155;color:#94A3B8;cursor:pointer">Cancel</button>
+          <button onclick="confirmGraphImport()" style="padding:0 28px;height:42px;border-radius:8px;font-size:14px;font-weight:700;background:#B45309;border:2px solid #F59E0B;color:#fff;cursor:pointer">🗑 Clear &amp; Import</button>
+        </div>
+      </div>
+    </div>
+    <!-- Delete confirmation popup -->
+    <div id="graph-delete-popup" style="display:none;position:absolute;inset:0;z-index:999;background:rgba(0,0,0,.55);align-items:center;justify-content:center">
+      <div style="background:#0F2044;border:2px solid #DC2626;border-radius:14px;padding:36px 48px;text-align:center;min-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.7)">
+        <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+        <div style="font-size:18px;font-weight:800;color:#F8FAFC;margin-bottom:8px">Remove Operator?</div>
+        <div id="graph-delete-msg" style="font-size:14px;color:#94A3B8;margin-bottom:28px;line-height:1.6"></div>
+        <div style="display:flex;gap:14px;justify-content:center">
+          <button onclick="cancelDeleteGraphPerson()" style="padding:0 28px;height:42px;border-radius:8px;font-size:14px;font-weight:700;background:rgba(255,255,255,.08);border:2px solid #334155;color:#94A3B8;cursor:pointer">Cancel</button>
+          <button onclick="confirmDeleteGraphPerson()" style="padding:0 28px;height:42px;border-radius:8px;font-size:14px;font-weight:700;background:#DC2626;border:2px solid #EF4444;color:#fff;cursor:pointer">🗑 Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;bottom:0;left:0;right:0;background:#0A1628;height:34px;display:flex;align-items:center;justify-content:flex-end;padding:0 28px;border-top:2px solid #2563EB">
+    <span style="font-size:13px;color:#60A5FA;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.9">© Snowtex CI Team</span>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──
+let ALL_WS=[]; let smvM={}; let REAL={}; let importedDays={}; let chartData={}; let wsComments={}; let graphNotes={};
+let selectedGraphCol=null; let _pendingDelete=null; let _gRD=null; // graph render data cache
+let headerInfo={company:'—',floor:'—',line:'—',group:'—',startDate:'—',style:'—'};
+let lcTargets={}; let lcStartCalDay=null; let activeGraphDay=null; let lcAchieved=null;
+let cur=1;
+let viewMode='layout';
+
+const CLR={IDLE:'#475569',D1:'#1D4ED8',D2:'#15803D',D3:'#EA580C',D4:'#7C3AED',D5:'#0E7490',D6:'#B45309',D7:'#BE123C'};
+const CLR_LIGHT={IDLE:'#94A3B8',D1:'#93C5FD',D2:'#86EFAC',D3:'#FDBA74',D4:'#C4B5FD',D5:'#67E8F9',D6:'#FCD34D',D7:'#FDA4AF'};
+const LBL={IDLE:'Old Style',D1:'Day 1 · 30%',D2:'Day 2 · 50%',D3:'Day 3 · 65%',D4:'Day 4 · 75%',D5:'Day 5 · 85%',D6:'Day 6 · 90%',D7:'Day 7 · 100%'};
+const CAPEFF={D1:0.30,D2:0.50,D3:0.65,D4:0.75,D5:0.85,D6:0.90,D7:1.00};
+
+// ── Scale stage to viewport ──
+function scaleStage(){
+  const s=document.getElementById('stage');
+  const sc=Math.min(window.innerWidth/1920,window.innerHeight/1080);
+  s.style.transform=`scale(${sc})`;
+  s.style.left=Math.max(0,(window.innerWidth-1920*sc)/2)+'px';
+  s.style.top=Math.max(0,(window.innerHeight-1080*sc)/2)+'px';
+}
+window.addEventListener('resize',scaleStage);
+scaleStage();
+
+// ── Core helpers ──
+// getSt: reads TgtDay directly from REAL[d][w].tgtDay — no calculation needed.
+// The ERP already handles the <5hr exception and puts the correct LC day in col X.
+const getSt   = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; if(!r||!r.tgtDay) return 'IDLE'; return `D${Math.min(7,r.tgtDay)}`; };
+const getDL   = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; return (r&&r.tgtDay)?`Day ${r.tgtDay}`:''; };
+const getTP   = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; return r?r.t:null; };
+const getProd    = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; return r?r.p:null; };
+const getRawProd = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; return r?r.prod:null; };
+const getPIB  = (w,d)=>{ const r=REAL[d]&&REAL[d][w]; return r?r.pib:null; };
+function getYTD(w){ let sum=0,has=false; Object.keys(REAL).forEach(d=>{ const v=getPIB(w,Number(d)); if(v!=null){sum+=v;has=true;} }); return has?sum:null; }
+
+// ── Import: trigger for a specific day slot ──
+function triggerImport(dayNum){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.xls,.xlsx,.html,.htm';
+  inp.onchange=e=>{ if(e.target.files[0]) processFile(e.target.files[0],dayNum); };
+  inp.click();
+}
+
+// ── Import: clear existing data then pick new files ──
+function triggerBulkImport(){
+  const hasData=ALL_WS.length>0;
+  const doImport=()=>{
+    const inp=document.createElement('input');
+    inp.type='file'; inp.accept='.xls,.xlsx,.html,.htm'; inp.multiple=true;
+    inp.onchange=async e=>{
+      const files=[...e.target.files];
+      if(!files.length) return;
+      let okCount=0,failCount=0,lastDay=null;
+      for(const f of files){
+        try{
+          const day=await processFile(f,null);
+          if(day!=null){okCount++;lastDay=day;}
+          else failCount++;
+        }catch(err){failCount++;console.error('Bulk import error for',f.name,err);}
+      }
+      // Sort all files by Report Date → assigns Day 1, 2, 3... in correct order
+      renumberDaysByDate();
+      rebuildFromImports();
+      cur=1; viewMode='visual';
+      render();
+      if(failCount>0) alert(`Imported ${okCount} file(s). ${failCount} could not be read.`);
+    };
+    inp.click();
+  };
+  if(hasData){
+    // Show warning modal — doImport runs only after user confirms
+    clearAll(doImport);
+  } else {
+    doImport();
+  }
+}
+
+// ── Read file, detect format, dispatch to parser ──
+function processFile(file,dayArg){
+  return new Promise((resolve)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const buf=new Uint8Array(e.target.result);
+        let rows;
+        let head=''; for(let i=0;i<Math.min(buf.length,256);i++) head+=String.fromCharCode(buf[i]);
+        const trimmed=head.replace(/^﻿/,'').trimStart().toLowerCase();
+        const isHTML=trimmed.startsWith('<')&&/<table|<html|<!doctype|<h\d|<div|<span|<meta/i.test(trimmed);
+        if(isHTML){
+          const fullText=new TextDecoder('utf-8',{fatal:false}).decode(buf);
+          rows=parseHtmlReport(fullText);
+        } else {
+          if(typeof XLSX==='undefined'){alert('SheetJS library not loaded.');resolve(null);return;}
+          const wb=XLSX.read(buf,{type:'array'});
+          const sheet=wb.Sheets[wb.SheetNames[0]];
+          rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
+        }
+        const result=extractDayFromRows(rows,dayArg,file.name);
+        if(result==null){resolve(null);return;}
+        resolve(result.dayNum);
+        if(dayArg!==null){cur=result.dayNum;viewMode='visual';render();}
+      }catch(err){
+        alert('Error reading "'+file.name+'": '+err.message);
+        console.error(err); resolve(null);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ── Parse HTML-format ERP report (handles rowspan/colspan merged cells) ──
+function parseHtmlReport(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  let companyStr='',dateStr='';
+  doc.querySelectorAll('span,h4,h5,h3,p,div').forEach(el=>{
+    const t=(el.textContent||'').trim();
+    if(!companyStr&&/Company:/i.test(t)&&/Floor:/i.test(t)) companyStr=t.replace(/\s+/g,' ');
+    if(!dateStr&&/Report Date/i.test(t)) dateStr=t.replace(/\s+/g,' ');
+  });
+  // Find the main data table (largest by row count)
+  let bestTable=null,bestSize=0;
+  doc.querySelectorAll('table').forEach(tbl=>{
+    const n=tbl.querySelectorAll('tr').length;
+    if(n>bestSize){bestSize=n;bestTable=tbl;}
+  });
+  if(!bestTable) return [];
+  // Build grid with proper rowspan fill-down
+  const grid=[],pending={};
+  bestTable.querySelectorAll('tr').forEach(tr=>{
+    const tds=[...tr.querySelectorAll('td,th')];
+    const rowOut=[];
+    let tdIdx=0,col=0;
+    const maxCol=32;
+    while(col<maxCol){
+      if(pending[col]&&pending[col].left>0){rowOut[col]=pending[col].val;pending[col].left--;col++;continue;}
+      if(tdIdx>=tds.length){rowOut[col]=null;col++;continue;}
+      const td=tds[tdIdx++];
+      const colspan=parseInt(td.getAttribute('colspan')||'1');
+      const rowspan=parseInt(td.getAttribute('rowspan')||'1');
+      let v=(td.textContent||'').trim();
+      const clean=v.replace(/,/g,'');
+      let val;
+      if(v==='') val=null;
+      else if(/^-?\d+(\.\d+)?%$/.test(clean)) val=parseFloat(clean)/100;
+      else if(/^-?\d+(\.\d+)?$/.test(clean)) val=parseFloat(clean);
+      else val=v;
+      for(let c=0;c<colspan;c++){
+        rowOut[col+c]=val;
+        if(rowspan>1) pending[col+c]={val,left:rowspan-1};
+      }
+      col+=colspan;
+    }
+    grid.push(rowOut);
+  });
+  const out=[];
+  if(companyStr) out.push([companyStr]);
+  if(dateStr) out.push([dateStr]);
+  out.push([]);
+  return out.concat(grid);
+}
+
+// ── Extract per-WS data from a 2D row array ──
+// Column map (always fixed across all ERP files):
+//   A(0)=MC/WS  B(1)=OP ID  F(5)=Prod Pcs  M(12)=Style
+//   S(18)=Working Hr  V(21)=Assign SMV  X(23)=Target Day  Y(24)=Target Eff%  Z(25)=Target Pcs
+function extractDayFromRows(rows,dayArg,fileName){
+  const COL={ws:0,opId:1,pib:7,prod:5,style:12,workHr:18,smv:21,tgtDay:23,eff:24,tgtPcs:25};
+  const isOpId=v=>{ const s=String(v||'').replace(/\D/g,''); return s.length>=7; };
+  // Find data start row
+  let dataStart=-1;
+  for(let i=0;i<Math.min(rows.length,60);i++){
+    const r=rows[i]; if(!r) continue;
+    if(isOpId(r[COL.opId])){dataStart=i;break;}
+  }
+  if(dataStart===-1){
+    alert('Could not find operator data in "'+fileName+'". Expected OP ID (7+ digits) in column B.');
+    return null;
+  }
+  // Scan pre-data rows for meta strings
+  let metaStr='',dateStr='';
+  for(let i=0;i<dataStart;i++){
+    const r=rows[i]; if(!r) continue;
+    for(const c of r){
+      const cell=String(c||'');
+      if(!metaStr&&cell.includes('Company:')) metaStr=cell;
+      if(!dateStr&&/Report Date/i.test(cell)) dateStr=cell;
+    }
+  }
+  // Fill-down merged OP ID cells (operators on 2 styles have rowspan on OP ID)
+  const allDataRows=rows.slice(dataStart);
+  let lastOpId=null,lastOpName=null;
+  allDataRows.forEach(r=>{
+    if(!r) return;
+    if(isOpId(r[COL.opId])){ lastOpId=r[COL.opId]; lastOpName=r[2]; }
+    else if(!r[COL.opId]&&lastOpId){ r[COL.opId]=lastOpId; r[2]=lastOpName; }
+    else { lastOpId=null; lastOpName=null; }
+  });
+  const dataRows=allDataRows.filter(r=>r&&isOpId(r[COL.opId]));
+  // Auto-detect layout style: most common "(L)..." in style column
+  const styleCount={};
+  dataRows.forEach(r=>{
+    const s=String(r[COL.style]||'').trim();
+    if(s.match(/^\(L\)/i)) styleCount[s]=(styleCount[s]||0)+1;
+  });
+  const targetStyle=Object.keys(styleCount).sort((a,b)=>styleCount[b]-styleCount[a])[0]||null;
+  if(!targetStyle){
+    alert('No layout style (starting with "(L)") found in "'+fileName+'".');
+    return null;
+  }
+  const styleRows=dataRows.filter(r=>String(r[COL.style]||'').trim()===targetStyle);
+  // Extract per-WS data — use col X (TgtDay) directly, ERP handles <5hr exception
+  const dayWS={};
+  styleRows.forEach(r=>{
+    const ws=parseInt(r[COL.ws]);
+    if(!ws||isNaN(ws)||ws<=0) return;
+    const assignSMV=parseFloat(r[COL.smv])||0;
+    const targetEff=parseFloat(r[COL.eff])||0;
+    const prodPcs=parseFloat(r[COL.prod])||0;
+    const workHr=parseFloat(r[COL.workHr])||parseFloat(r[20])||0;
+    const tgtPcsZ=parseFloat(r[COL.tgtPcs])||null;
+    const tgtDay=parseInt(r[COL.tgtDay])||null;  // LC day directly from ERP (col X)
+    // Hr Target: formula (60 × TgtEff%) ÷ AssignSMV, fallback to col Z
+    const hrTar=(assignSMV>0&&targetEff>0)?Math.round((60*targetEff)/assignSMV):(tgtPcsZ||null);
+    // Hr Prod: Production Pcs ÷ Working Hours
+    const hrProd=workHr>0?Math.round(prodPcs/workHr):null;
+    const pibAmt=parseFloat(r[COL.pib])||0;
+    if(!dayWS[ws]) dayWS[ws]={t:hrTar,p:hrProd,prod:prodPcs>0?prodPcs:null,smv:assignSMV>0?assignSMV:null,tgtDay,eff:targetEff>0?targetEff:null,pib:pibAmt>0?pibAmt:null};
+  });
+  // Resolve calendar day number (auto from Report Date, or manual)
+  let dayNum=dayArg;
+  if(dayNum==null){
+    const fileDate=parseReportDate(dateStr);
+    if(fileDate){
+      const anchors=Object.entries(importedDays)
+        .map(([d,info])=>({d:Number(d),date:parseReportDate(info.dateStr)}))
+        .filter(x=>x.date);
+      if(anchors.length){
+        anchors.sort((a,b)=>a.date-b.date);
+        const base=anchors[0];
+        const diff=Math.round((fileDate-base.date)/(1000*60*60*24));
+        dayNum=base.d+diff;
+      } else {
+        dayNum=1; // first import → Day 1 anchor
+      }
+      // In bulk mode (dayArg===null) skip range check — renumberDaysByDate() will fix order after all files load
+      if(dayArg!==null && (dayNum<1||dayNum>7)){
+        alert(`"${fileName}" resolves to Day ${dayNum} (outside 1–7). Use a manual Day button.`);
+        return null;
+      }
+    } else {
+      if(dayArg!==null){
+        alert(`Could not detect Report Date in "${fileName}". Use a manual Day button instead.`);
+        return null;
+      }
+      // Bulk mode with no date — store under a large temp key, renumber will drop it if needed
+      dayNum = 900 + Object.keys(importedDays).length;
+    }
+  }
+  importedDays[dayNum]={ws:dayWS,dateStr,metaStr,style:targetStyle};
+  // Set header info from earliest calendar day
+  const sortedNums=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+  const firstDay=importedDays[sortedNums[0]];
+  if(firstDay){
+    const m=firstDay.metaStr||'';
+    const dm=firstDay.dateStr||'';
+    const get=rx=>{ const x=m.match(rx); return x?x[1].trim().replace(/\s+\|.*$/,''):'—'; };
+    headerInfo={
+      company:get(/Company:\s*([^|]+)/),
+      floor:get(/Floor:\s*([^|]+)/),
+      line:get(/Line:\s*([^|]+)/),
+      group:get(/PIB Group:\s*([^|]+)/),
+      startDate:((dm.match(/Report Date\s*:\s*(.+)/)||[])[1]||'—').trim(),
+      style:firstDay.style||'(L) ...'
+    };
+  }
+  rebuildFromImports();
+  return {dayNum};
+}
+
+// ── Parse "Report Date : 17-May-2026" into a Date ──
+function parseReportDate(str){
+  if(!str) return null;
+  const m=String(str).match(/Report Date\s*:?\s*(.+)/i);
+  const raw=(m?m[1]:str).trim().split(/\s+\|/)[0].trim();
+  let d=new Date(raw.replace(/-/g,' '));
+  if(!isNaN(d)) return d;
+  d=new Date(raw);
+  return isNaN(d)?null:d;
+}
+
+// ── After bulk import: sort all files by Report Date, assign Day 1, 2, 3... in order ──
+function renumberDaysByDate(){
+  const entries=Object.entries(importedDays);
+  if(!entries.length) return;
+  // Sort ascending by actual report date
+  entries.sort((a,b)=>{
+    const da=parseReportDate(a[1].dateStr);
+    const db=parseReportDate(b[1].dateStr);
+    if(!da&&!db) return 0;
+    if(!da) return 1;
+    if(!db) return -1;
+    return da-db;
+  });
+  importedDays={};
+  entries.forEach(([,data],i)=>{ importedDays[i+1]=data; });
+}
+
+// ── After graph import: reassign chartData keys to match layout day numbers by date ──
+function resequenceChartData(){
+  // Extracts a Date using the same regex fmtGraphDate uses — works regardless of prefix
+  function anyDate(str){
+    if(!str) return null;
+    const m=String(str).match(/(\d{1,2}[-\/]\w+[-\/]\d{2,4})/);
+    if(!m) return null;
+    const d=new Date(m[1].replace(/-/g,' '));
+    return isNaN(d)?null:d;
+  }
+  const entries=Object.values(chartData);
+  if(!entries.length) return;
+  // Sort ascending by date
+  entries.sort((a,b)=>{
+    const da=anyDate(a.dateStr), db=anyDate(b.dateStr);
+    if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1; return da-db;
+  });
+  // Build layout timestamp → dayNum map
+  const layoutMap={};
+  Object.entries(importedDays).forEach(([d,info])=>{
+    const dt=anyDate(info.dateStr)||parseReportDate(info.dateStr);
+    if(dt) layoutMap[new Date(dt.toDateString()).getTime()]=Number(d);
+  });
+  chartData={};
+  entries.forEach(data=>{
+    const gDate=anyDate(data.dateStr)||parseReportDate(data.dateStr);
+    let dayNum=null;
+    if(gDate) dayNum=layoutMap[new Date(gDate.toDateString()).getTime()]??null;
+    if(dayNum===null){
+      const used=Object.keys(chartData).map(Number);
+      dayNum=used.length?Math.max(...used)+1:1;
+    }
+    chartData[dayNum]=data;
+  });
+  const days=Object.keys(chartData).map(Number).sort((a,b)=>a-b);
+  activeGraphDay=days.length?days[0]:cur;
+}
+// ── Rebuild ALL_WS, smvM, REAL from importedDays ──
+function rebuildFromImports(){
+  const wsSet=new Set();
+  const smvTemp={};
+  Object.values(importedDays).forEach(({ws})=>{
+    Object.entries(ws).forEach(([w,d])=>{
+      w=Number(w); wsSet.add(w);
+      if(d.smv&&d.smv>0) smvTemp[w]=d.smv;
+    });
+  });
+  ALL_WS=[...wsSet].sort((a,b)=>a-b);
+  smvM=smvTemp;
+  // REAL[calDay][ws] = { t, p, tgtDay } — tgtDay is from col X, read directly, no computation
+  REAL={};
+  const sorted=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+  sorted.forEach(d=>{
+    REAL[d]={};
+    Object.entries(importedDays[d].ws).forEach(([w,data])=>{
+      REAL[d][Number(w)]={t:data.t,p:data.p,tgtDay:data.tgtDay,eff:data.eff,pib:data.pib};
+    });
+  });
+}
+
+// ── Operator profile icon — person inside circle (account style) ──
+function sewIcon(blink){
+  const uid='c'+(Math.random()*1e7|0);
+  return `<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:38px;display:block">
+    ${blink?`<circle cx="22" cy="22" r="21" fill="#C53030" style="animation:_wcIconBlink 1.1s ease-in-out infinite"/>`:``}
+    <circle cx="22" cy="22" r="21" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="2.2"/>
+    <circle cx="22" cy="16" r="7.5" fill="rgba(255,255,255,.93)"/>
+    <clipPath id="${uid}"><circle cx="22" cy="22" r="20"/></clipPath>
+    <ellipse cx="22" cy="38" rx="13" ry="10" fill="rgba(255,255,255,.88)" clip-path="url(#${uid})"/>
+  </svg>`;
+}
+
+const CW=65, CH=284, FA=38, IW=20;
+const colH=CH*2+FA;
+const pad=n=>String(n).padStart(2,'0');
+
+// ── WS card ──
+// IDLE: minimal — WS number + "Old Style" only, no SMV/target/prod
+// Layout (D1-D7): WS number + Day label + SMV + Target pcs/hr + Prod pcs/hr
+function card(w,d){
+  const vis=(viewMode==='visual');
+  const s=vis?'IDLE':getSt(w,d);
+  const bg=CLR[s];
+  const isLayout=(s!=='IDLE');
+
+  if(!isLayout){
+    // ── Old Style card — same structure as layout card, no data rows ──
+    return `<div style="width:${CW}px;height:${CH}px;background:${bg};border-radius:10px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;${wsComments[cur+'_'+w]?'outline:4px solid #E53E3E;border-top:14px solid #E53E3E;animation:_wcBlink 1.1s ease-in-out infinite;':'outline:4px solid transparent;border-top:14px solid transparent;'}">
+      <div style="width:${CW-8}px;position:relative;cursor:pointer" onclick="openWsComment(${w},event)" onmouseenter="showWsCommentTip(${w},event)" onmouseleave="hideWsCommentTip()" title="">
+        ${sewIcon(!!wsComments[cur+'_'+w])}
+      </div>
+      <div style="font-size:15px;font-weight:800;color:#fff;text-align:center;letter-spacing:.6px;text-shadow:0 1px 2px rgba(0,0,0,.3)">WS ${pad(w)}</div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.50);text-align:center;background:rgba(255,255,255,.10);border-radius:4px;padding:1px 6px">Old Style</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.20);text-align:center">—</div>
+      <div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;color:rgba(255,255,255,.20);text-transform:uppercase;letter-spacing:.5px">Target</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.18)">—</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;color:rgba(255,255,255,.20);text-transform:uppercase;letter-spacing:.5px">Prod.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.18)">—</div>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,.20);text-align:center">PIB —</div>
+    </div>`;
+  }
+
+  // ── Layout card (D1–D7) ──
+  const dl=getDL(w,d);
+  const t=getTP(w,d);
+  const p=getProd(w,d);
+  const pib=getPIB(w,d);
+  const smv=smvM[w]?smvM[w].toFixed(2):null;
+
+  const smvRow=smv
+    ?`<div style="font-size:10px;color:rgba(255,255,255,.70);text-align:center;line-height:1.3">SMV <strong style="color:#fff">${smv}</strong></div>`
+    :`<div style="font-size:10px;color:rgba(255,255,255,.30);text-align:center">SMV —</div>`;
+
+  const tRow=t!==null
+    ?`<div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px">Target</div>
+        <div style="font-size:15px;font-weight:800;color:#FDE68A;text-shadow:0 1px 2px rgba(0,0,0,.3)">${t}<span style="font-size:10px;font-weight:600;opacity:.75"> pcs/hr</span></div>
+      </div>`
+    :`<div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.5px">Target</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.22)">—</div>
+      </div>`;
+
+  const pRow=p!==null
+    ?`<div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.5px">Prod.</div>
+        <div style="font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)">${p}<span style="font-size:10px;font-weight:600;opacity:.75"> pcs/hr</span></div>
+      </div>`
+    :`<div style="display:flex;flex-direction:column;align-items:center;line-height:1.2">
+        <div style="font-size:10px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.5px">Prod.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.22)">—</div>
+      </div>`;
+
+  const pibRow=pib!=null
+    ?`<div style="font-size:11px;font-weight:800;color:${CLR_LIGHT[s]};text-align:center;line-height:1.3">PIB ${Math.round(pib)}<span style="font-size:8px;font-weight:700;opacity:.80"> Tk</span></div>`
+    :`<div style="font-size:10px;color:rgba(255,255,255,.22);text-align:center">PIB —</div>`;
+
+  return `<div style="width:${CW}px;height:${CH}px;background:${bg};border-radius:10px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;${wsComments[cur+'_'+w]?'outline:4px solid #E53E3E;border-top:14px solid #E53E3E;animation:_wcBlink 1.1s ease-in-out infinite;':'outline:4px solid transparent;border-top:14px solid transparent;'}">
+    <div style="width:${CW-8}px;position:relative;cursor:pointer" onclick="openWsComment(${w},event)" onmouseenter="showWsCommentTip(${w},event)" onmouseleave="hideWsCommentTip()" title="">
+      ${sewIcon(!!wsComments[cur+'_'+w])}
+    </div>
+    <div style="font-size:15px;font-weight:800;color:#fff;text-align:center;letter-spacing:.6px;text-shadow:0 1px 2px rgba(0,0,0,.3)">WS ${pad(w)}</div>
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.92);text-align:center;background:rgba(255,255,255,.15);border-radius:4px;padding:1px 6px">${dl}</div>
+    ${smvRow}
+    ${tRow}
+    ${pRow}
+    ${pibRow}
+  </div>`;
+}
+
+// ── Arrow helpers ──
+// Only draw arrows between WS that are sequential in the production line (|a-b| <= 3)
+function wsClose(a,b){
+  if(a==null||b==null) return false;
+  return Math.abs(Number(a)-Number(b))<=3;
+}
+
+function vArrow(down,w1,w2){
+  // Vertical arrow between top and bottom card in a column
+  if(!wsClose(w1,w2)){
+    return `<div style="height:${FA}px"></div>`;
+  }
+  return `<div style="height:${FA}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+    <div style="width:2px;height:10px;background:#94A3B8;border-radius:1px"></div>
+    <span class="${down?'aD':'aU'}" style="color:#334155;font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))">${down?'▼':'▲'}</span>
+    <div style="width:2px;height:4px;background:#94A3B8;border-radius:1px"></div>
+  </div>`;
+}
+
+function hArrow(gapIdx,wsL,wsR){
+  // Horizontal arrow between columns — show only if WS numbers are sequential
+  const atBot=(gapIdx%2===0);
+  const aTop=atBot?(CH+FA+Math.round(CH/2)-14):(Math.round(CH/2)-14);
+  const show=wsClose(wsL,wsR);
+  return `<div style="width:${IW}px;height:${colH}px;flex-shrink:0;position:relative">
+    ${show?`<div style="position:absolute;top:${aTop}px;left:0;width:${IW}px;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:2px;height:8px;background:#94A3B8;border-radius:1px"></div>
+      <span class="aR" style="color:#1E293B;font-size:18px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))">▶</span>
+      <div style="width:2px;height:8px;background:#94A3B8;border-radius:1px"></div>
+    </div>`:''}
+  </div>`;
+}
+
+// ── Clear data ──
+let _afterClearFn=null; // callback after confirmed clear (used by Clear & Import)
+function clearAll(afterFn){
+  _afterClearFn=afterFn||null;
+  const m=document.getElementById('confirm-modal');
+  m.style.display='flex'; m.style.alignItems='center'; m.style.justifyContent='center';
+}
+function cancelClear(){
+  _afterClearFn=null;
+  document.getElementById('confirm-modal').style.display='none';
+}
+function confirmClear(){
+  importedDays={}; ALL_WS=[]; smvM={}; REAL={};
+  headerInfo={company:'—',floor:'—',line:'—',group:'—',startDate:'—',style:'—'};
+  cur=1; viewMode='visual';
+  document.getElementById('confirm-modal').style.display='none';
+  render();
+  if(_afterClearFn){ _afterClearFn(); _afterClearFn=null; }
+}
+
+// ── Format short date from importedDays[d].dateStr (Performance Reports) ──
+function fmtShortDate(d){
+  const ds=importedDays[d]&&importedDays[d].dateStr||'';
+  const m=String(ds).match(/(\d{1,2}[-\/]\w+[-\/]\d{2,4})/);
+  if(!m) return '';
+  const dt=new Date(m[1].replace(/-/g,' '));
+  if(isNaN(dt)) return m[1];
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+// ── Format short date from chartData[d].dateStr (Graph Excel files) ──
+function fmtGraphDate(d){
+  const ds=chartData[d]&&chartData[d].dateStr||'';
+  const m=String(ds).match(/(\d{1,2}[-\/]\w+[-\/]\d{2,4})/);
+  if(!m) return fmtShortDate(d); // fallback to performance report date
+  const dt=new Date(m[1].replace(/-/g,' '));
+  if(isNaN(dt)) return m[1];
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+
+// ── Detect <5hr exception: same tgtDay as previous calendar day ──
+function isRepeatedDay(w,d){
+  if(d<=1) return false;
+  const prev=REAL[d-1]&&REAL[d-1][w];
+  const curr=REAL[d]&&REAL[d][w];
+  if(!prev||!curr||!prev.tgtDay||!curr.tgtDay) return false;
+  return prev.tgtDay===curr.tgtDay;
+}
+
+// ── Sort WS by WS number ascending (input → output production flow) ──
+// Color coding reflects LC day status; order reflects physical line layout
+function getSortedWS(){
+  return [...ALL_WS].sort((a,b)=>a-b);
+}
+
+// ── Main render ──
+function render(){
+  const vis=(viewMode==='visual');
+  const hasAny=ALL_WS.length>0;
+
+  // Update Import button label based on data state
+  const importBtn=document.getElementById('import-btn');
+  if(importBtn){
+    if(hasAny){
+      importBtn.innerHTML='🗑 Clear &amp; Import Performance Report';
+      importBtn.style.background='rgba(220,38,38,.18)';
+      importBtn.style.borderColor='rgba(220,38,38,.60)';
+      importBtn.style.color='#FCA5A5';
+    } else {
+      importBtn.innerHTML='📥 Import Performance Report';
+      importBtn.style.background='rgba(96,165,250,.15)';
+      importBtn.style.borderColor='#60A5FA';
+      importBtn.style.color='#BFDBFE';
+    }
+  }
+
+  // Header — single meta line; style name sits right of Layout Start
+  const styleName=(headerInfo.style||'').replace(/^\(L\)\s*/i,'').trim()||'—';
+  document.getElementById('hdr-meta').innerHTML=`
+    <div style="display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:700;color:#FDE68A">${headerInfo.company}</span>
+      <span style="color:#334155">|</span>
+      <span style="font-size:13px;color:#94A3B8">Floor: <strong style="color:#E2E8F0">${headerInfo.floor}</strong></span>
+      <span style="color:#334155">|</span>
+      <span style="font-size:13px;color:#94A3B8">Line: <strong style="color:#E2E8F0">${headerInfo.line}</strong></span>
+      <span style="color:#334155">|</span>
+      <span style="font-size:13px;color:#94A3B8">Layout Start: <strong style="color:#5EEAD4">${headerInfo.startDate}</strong></span>
+      <span style="color:#334155">|</span>
+      <span style="font-size:13px;color:#94A3B8">Style: <strong style="color:#E2E8F0">${styleName}</strong></span>
+    </div>`;
+  document.getElementById('hdr-sub').innerHTML='';
+
+  // Day buttons — only show imported days; date label underneath each button
+  const importedDayNums=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+  const dayBtns=importedDayNums.map(d=>{
+    const a=!vis&&d===cur;
+    const clr=CLR[`D${Math.min(7,d)}`]||'#2563EB';
+    const dateLabel=fmtShortDate(d);
+    const isLCStart=lcStartCalDay!=null&&d===lcStartCalDay;
+    const isLCPeriod=lcStartCalDay!=null&&d>=lcStartCalDay;
+    const borderClr=a?clr:isLCStart?'#F59E0B':isLCPeriod?'rgba(245,158,11,.45)':'#2A4A7A';
+    const lcMark=isLCStart?`<div style="font-size:9px;font-weight:800;color:#F59E0B;letter-spacing:.4px;text-align:center;margin-top:1px">▲ LC START</div>`:'';
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <button onclick="setDay(${d})" style="padding:0 20px;height:38px;border-radius:8px;font-size:13px;font-weight:700;background:${a?clr:'rgba(255,255,255,.10)'};border:2px solid ${borderClr};color:${a?'#fff':'#CBD5E1'}">Day ${d}</button>
+      <span style="font-size:11px;color:${a?'#5EEAD4':'#475569'};font-weight:600;letter-spacing:.3px">${dateLabel}</span>
+      ${lcMark}
+    </div>`;
+  }).join('');
+  const divider=importedDayNums.length?`<div style="width:2px;height:44px;background:rgba(255,255,255,.20);border-radius:1px;align-self:center;margin:0 4px"></div>`:'';
+  updateLayoutGraphBtn();
+  updateLCBtn();
+  if(typeof updateGraphNoteBtns==='function') updateGraphNoteBtns();
+  document.getElementById('day-btns').innerHTML=
+    `<div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <button onclick="setVisual()" style="padding:0 18px;height:38px;border-radius:8px;font-size:13px;font-weight:700;background:${vis?'#0D9488':'rgba(255,255,255,.08)'};border:2px solid ${vis?'#5EEAD4':'#2A4A7A'};color:${vis?'#fff':'#94A3B8'}">Line Visual</button>
+      <span style="font-size:11px;color:rgba(255,255,255,.0)">—</span>
+    </div>`+
+    divider+dayBtns;
+
+  // Empty state
+  if(!hasAny){
+    document.getElementById('stats').innerHTML=`
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 20px;border-radius:8px;background:#fff;border:2px solid #2563EB44">
+        <span style="font-size:15px;color:#475569;font-weight:600">No data — click <strong>📥 Import</strong> (top-right) to upload all day files at once</span>
+      </div>`;
+    document.getElementById('pot-bar').innerHTML='';
+    document.getElementById('grid').innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:60px 80px;text-align:center">
+        <div style="font-size:64px;opacity:.25">📂</div>
+        <div style="font-size:22px;font-weight:700;color:#94A3B8">Import Excel files to build the dashboard</div>
+        <div style="font-size:15px;color:#CBD5E1;max-width:640px;line-height:1.7">
+          <strong style="color:#60A5FA">📥 Import All</strong> — select all your day files at once. Each file is auto-assigned to the right day by its Report Date.<br>
+          <strong style="color:#60A5FA">📂 Layout Day N</strong> — import a single specific day.<br>
+          <span style="color:#94A3B8;font-size:13px">Supports ERP .xls (HTML-format) and .xlsx files.</span>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── Unified summary table — columns = only LC days present across ALL imported data ──
+  const allDayKeys=['D1','D2','D3','D4','D5','D6','D7'];
+  const ORD={D1:'1st',D2:'2nd',D3:'3rd',D4:'4th',D5:'5th',D6:'6th',D7:'7th'};
+  // EFF from actual col Y data — pick first valid eff per LC day across all imported days
+  const EFF={};
+  allDayKeys.forEach(k=>{
+    const dayNum=parseInt(k.slice(1));
+    outer: for(const calDay of Object.keys(REAL).map(Number)){
+      for(const ws of Object.values(REAL[calDay])){
+        if(ws.tgtDay===dayNum&&ws.eff!=null){
+          EFF[k]=Math.round(ws.eff*100)+'%';
+          break outer;
+        }
+      }
+    }
+  });
+
+  // Find which LC days exist across ALL imported days (fixes columns regardless of selected day)
+  const usedKeys=new Set();
+  Object.values(REAL).forEach(dayObj=>{
+    Object.values(dayObj).forEach(ws=>{ if(ws.tgtDay) usedKeys.add(`D${Math.min(7,ws.tgtDay)}`); });
+  });
+  const dayKeys=allDayKeys.filter(k=>usedKeys.has(k));
+
+  // Total PIB for current day + YTD across all days
+  let totalPIB=0,hasPIB=false,totalYTD=0,hasYTD=false;
+  if(!vis){
+    ALL_WS.forEach(w=>{ const v=getPIB(w,cur); if(v!=null){totalPIB+=v;hasPIB=true;} });
+  }
+  Object.keys(REAL).map(Number).sort((a,b)=>a-b).forEach(d=>{
+    if(d<=cur) ALL_WS.forEach(w=>{ const v=getPIB(w,d); if(v!=null){totalYTD+=v;hasYTD=true;} });
+  });
+
+  // Count + potential for CURRENT selected day
+  const cnt={}; dayKeys.forEach(k=>cnt[k]=0);
+  const pot={}; dayKeys.forEach(k=>pot[k]={sum:0,valid:0});
+  const prd={}; dayKeys.forEach(k=>prd[k]={sum:0,valid:0});
+  const potAll={sum:0,valid:0};
+  const prdAll={sum:0,valid:0};
+  if(!vis){
+    ALL_WS.forEach(w=>{
+      const s=getSt(w,cur);
+      if(s!=='IDLE'&&cnt[s]!==undefined){
+        cnt[s]++;
+        const t=getTP(w,cur);
+        if(t!=null){pot[s].sum+=t;pot[s].valid++;potAll.sum+=t;potAll.valid++;}
+        const p=getProd(w,cur);
+        if(p!=null&&p>0){prd[s].sum+=p;prd[s].valid++;prdAll.sum+=p;prdAll.valid++;}
+      }
+    });
+  }
+  const avgOf=g=>g.valid>0?Math.round(g.sum/g.valid):null;
+
+  // Cell helpers
+  const COL_W='128px';
+  const thLabel=`<th style="padding:8px 14px;font-size:11px;font-weight:700;color:#64748B;background:#F1F5F9;text-align:left;border:1px solid #CBD5E1;white-space:nowrap;min-width:136px;text-transform:uppercase;letter-spacing:.5px">Metric</th>`;
+  const thDay=k=>{
+    const active=!vis&&cnt[k]>0;
+    return `<th style="padding:0;border:1px solid ${active?CLR[k]+'99':'#CBD5E1'};min-width:${COL_W};width:${COL_W};background:${active?CLR[k]+'1A':'#F8FAFC'}">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:100%;height:14px;background:${CLR[k]};opacity:${active?'1':'.28'}"></div>
+        <div style="padding:6px 8px 7px;text-align:center">
+          <div style="font-size:12px;font-weight:800;color:${active?CLR[k]:'#94A3B8'};letter-spacing:.2px">${ORD[k]} Day Target</div>
+        </div>
+      </div>
+    </th>`;
+  };
+  const tdLabel=txt=>`<td style="padding:8px 14px;font-size:11px;font-weight:700;color:#64748B;background:#F1F5F9;text-align:left;border:1px solid #E2E8F0;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px">${txt}</td>`;
+  const tdVal=(k,val,emph)=>{
+    const active=!vis&&cnt[k]>0;
+    const color=active?(emph?CLR[k]:'#0F172A'):'#B0BCCC';
+    return `<td style="padding:8px 8px;font-size:${emph?'20':'14'}px;font-weight:${emph?'900':'600'};color:${color};background:${active&&emph?CLR[k]+'14':'#fff'};text-align:center;border:1px solid ${active?CLR[k]+'55':'#E2E8F0'};white-space:nowrap">${val}</td>`;
+  };
+
+  // Build rows (no data = show —)
+  const tHead=`<tr>${thLabel}${dayKeys.map(thDay).join('')}</tr>`;
+  const tR1=`<tr>${tdLabel('Target Eff%')}${dayKeys.map(k=>tdVal(k,EFF[k]||'',false)).join('')}</tr>`;
+  const tR2=`<tr>${tdLabel('No. of W/S')}${dayKeys.map(k=>tdVal(k,cnt[k]>0?cnt[k]:'—',true)).join('')}</tr>`;
+  const potOverall=avgOf(potAll); const prdOverall=avgOf(prdAll);
+  const tR3=`<tr>${tdLabel('Avg Target Pcs/Hr'+(potOverall!=null?' ('+potOverall+')':''))}${dayKeys.map(k=>{const a=avgOf(pot[k]);return tdVal(k,a!=null?a+'':'—',false);}).join('')}</tr>`;
+  const tR4=`<tr>${tdLabel('Potential Pcs'+(prdOverall!=null?' ('+prdOverall+')':''))}${dayKeys.map(k=>{const a=avgOf(prd[k]);return tdVal(k,a!=null?a+'':'—',false);}).join('')}</tr>`;
+
+  const tbl=`<table style="border-collapse:collapse;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.10);table-layout:fixed"><thead>${tHead}</thead><tbody>${tR1}${tR2}${tR3}${tR4}</tbody></table>`;
+  // Card color = selected calendar day (Day 1→D1 blue, Day 2→D2 green, etc.)
+  const dayKey=`D${Math.min(7,cur)}`;
+  const dayColor=!vis?CLR[dayKey]:'#1D4ED8';
+  const dayColorLight=!vis?CLR_LIGHT[dayKey]:'#93C5FD';
+
+  const pibCard=!vis?`<div style="align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.10);min-width:160px;flex-shrink:0;border:1px solid #CBD5E1">
+    <div style="width:100%;height:14px;background:${dayColor};flex-shrink:0"></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 20px">
+      <div style="font-size:13px;font-weight:800;color:#1E293B;letter-spacing:.5px;text-transform:uppercase">Total PIB</div>
+      <div style="position:relative;display:inline-block">
+        <div style="font-size:40px;font-weight:900;color:${dayColor};line-height:1;letter-spacing:-1px;padding-right:20px">${hasPIB?Math.round(totalPIB).toLocaleString():'—'}</div>
+        <span style="position:absolute;bottom:3px;right:0;font-size:12px;font-weight:700;color:#64748B;letter-spacing:.5px">Tk</span>
+      </div>
+      <div style="width:100%;height:1px;background:#E2E8F0;margin:4px 0"></div>
+      <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.5px;text-transform:uppercase">YTD</div>
+      <div style="position:relative;display:inline-block">
+        <div style="font-size:22px;font-weight:900;color:#475569;line-height:1;letter-spacing:-.5px;padding-right:16px">${hasYTD?Math.round(totalYTD).toLocaleString():'—'}</div>
+        <span style="position:absolute;bottom:2px;right:0;font-size:10px;font-weight:700;color:#94A3B8">Tk</span>
+      </div>
+    </div>
+  </div>`:'';
+  const lcT=lcTargets[cur]||{};
+  const lcTitle=lcStartCalDay!=null&&cur>=lcStartCalDay?`LC Day ${cur-lcStartCalDay+1} Target`:`Day ${cur} Target`;
+  const lcCard=!vis?`<div style="align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.10);min-width:160px;flex-shrink:0;border:1px solid #CBD5E1">
+    <div style="width:100%;height:14px;background:${dayColor};flex-shrink:0"></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px 20px">
+      <div style="font-size:13px;font-weight:800;color:#1E293B;letter-spacing:.5px;text-transform:uppercase">${lcTitle}</div>
+      <div style="position:relative;display:inline-block">
+        <div style="font-size:40px;font-weight:900;color:${dayColor};line-height:1;letter-spacing:-1px;padding-right:36px">${lcT.pcsHr!=null?lcT.pcsHr:'—'}</div>
+        <span style="position:absolute;bottom:3px;right:0;font-size:11px;font-weight:700;color:#64748B;letter-spacing:.3px">pcs/hr</span>
+      </div>
+      <div style="width:100%;height:1px;background:#E2E8F0;margin:4px 0"></div>
+      <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.5px;text-transform:uppercase">Target Eff%</div>
+      <div style="position:relative;display:inline-block">
+        <div style="font-size:22px;font-weight:900;color:#475569;line-height:1;letter-spacing:-.5px;padding-right:16px">${lcT.eff!=null?lcT.eff:'—'}</div>
+        <span style="position:absolute;bottom:2px;right:0;font-size:10px;font-weight:700;color:#94A3B8">%</span>
+      </div>
+    </div>
+  </div>`:'';
+  document.getElementById('stats').innerHTML=`<div style="display:flex;align-items:stretch;justify-content:center;gap:18px;padding:2px 0">${lcCard}${tbl}${pibCard}</div>`;
+  document.getElementById('pot-bar').innerHTML='';
+
+  // ── Zigzag WS grid ──
+  // Layout view: sorted by TgtDay DESC (highest LC day first) then WS number
+  // Visual view: sorted by WS number
+  const sortedWS=getSortedWS();
+  const R1=[],R2=[];
+  for(let i=0;i<sortedWS.length;i+=2){
+    R1.push(sortedWS[i]);
+    R2.push(sortedWS[i+1]!==undefined?sortedWS[i+1]:null);
+  }
+  const NCOLS=R1.length;
+  let g='';
+  for(let c=0;c<NCOLS;c++){
+    const w1=R1[c],w2=R2[c];
+    if(c>0){
+      // Horizontal arrow: connects bottom[c-1]→bottom[c] (even gap) or top[c-1]→top[c] (odd gap)
+      const atBot=(c-1)%2===0;
+      const wsL=atBot?R2[c-1]:R1[c-1];
+      const wsR=atBot?R2[c]:R1[c];
+      g+=hArrow(c-1,wsL,wsR);
+    }
+    const down=(c%2===0);
+    const badge=(w,d)=>isRepeatedDay(w,d)?`<div style="position:absolute;bottom:0;left:0;right:0;background:#F59E0B;border-radius:0 0 10px 10px;padding:2px 0;font-size:8px;font-weight:800;color:#fff;letter-spacing:.5px;text-align:center;line-height:1.2">&lt;5 Hrs ↺</div>`:'';
+    const stagger=`animation-delay:${c*18}ms`;
+    const wrapCard=(w,d)=>w!==null?`<div class="ws-card" style="position:relative;display:inline-block;${stagger}">${card(w,d)}${badge(w,d)}</div>`:`<div style="width:${CW}px;height:${CH}px;"></div>`;
+    g+=`<div style="display:flex;flex-direction:column;align-items:center">
+      ${wrapCard(w1,cur)}
+      ${vArrow(down,w1,w2)}
+      ${w2!==null?wrapCard(w2,cur):`<div style="width:${CW}px;height:${CH}px;"></div>`}
+    </div>`;
+  }
+  document.getElementById('grid').innerHTML=g;
+
+  // Legend removed (color key is now in the table header)
+
+  requestAnimationFrame(()=>{
+    const h=document.getElementById('grid')?.offsetHeight||0;
+    const inlbl=document.getElementById('inlbl');
+    const outlbl=document.getElementById('outlbl');
+    if(inlbl) inlbl.style.height=h+'px';
+    if(outlbl) outlbl.style.height=h+'px';
+  });
+}
+
+// ── Graph panel drag-to-pan ──
+(function(){
+  let _drag=false,_sx=0,_sy=0,_sl=0,_st=0;
+  document.addEventListener('mousedown',function(e){
+    const el=document.getElementById('graph-content');
+    if(!el||!el.contains(e.target)||e.target.closest('button')) return;
+    _drag=true; _sx=e.clientX; _sy=e.clientY; _sl=el.scrollLeft; _st=el.scrollTop;
+    el.style.cursor='grabbing'; e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!_drag) return;
+    const el=document.getElementById('graph-content'); if(!el) return;
+    el.scrollLeft=_sl-(_sx-e.clientX)*1.2;
+    el.scrollTop=_st-(_sy-e.clientY)*1.2;
+  });
+  document.addEventListener('mouseup',function(){
+    if(!_drag) return; _drag=false;
+    const el=document.getElementById('graph-content'); if(el) el.style.cursor='grab';
+  });
+})();
+// ── Fullscreen ──
+function toggleFS(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+    document.getElementById('fsbtn').textContent='✕';
+    const g=document.getElementById('graph-fsbtn'); if(g) g.textContent='✕';
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement){
+    document.getElementById('fsbtn').textContent='⛶';
+    const g=document.getElementById('graph-fsbtn'); if(g) g.textContent='⛶';
+  }
+});
+function setVisual(){viewMode='visual';render();}
+function toggleLCAchieved(){
+  const next = lcAchieved===null ? false : lcAchieved===false ? true : null;
+  const labels={null:'— LC Status', false:'✗ LC Not Achieved', true:'✓ LC Achieved'};
+  const colors={null:'#94A3B8', false:'#FCA5A5', true:'#86EFAC'};
+  const nextKey=next===null?'null':String(next);
+  const msg=document.getElementById('_lcWarnMsg');
+  const pop=document.getElementById('_lcWarnPop');
+  msg.innerHTML=`Change status to <strong style="color:${colors[nextKey]}">${labels[nextKey]}</strong>?`;
+  pop.style.display='flex';
+  pop._next=next;
+}
+window._confirmLCChange=function(){
+  const pop=document.getElementById('_lcWarnPop');
+  lcAchieved=pop._next;
+  pop.style.display='none';
+  updateLCBtn();
+};
+window._cancelLCChange=function(){
+  document.getElementById('_lcWarnPop').style.display='none';
+};
+function updateLCBtn(){
+  const btn=document.getElementById('lc-achieved-btn'); if(!btn) return;
+  if(lcAchieved===true){
+    btn.textContent='✓ LC Achieved';
+    btn.style.cssText=btn.style.cssText.replace(/background:[^;]+;/g,'').replace(/border:[^;]+;/g,'').replace(/color:[^;]+;/g,'');
+    btn.style.background='rgba(34,197,94,.20)';
+    btn.style.border='1.5px solid rgba(34,197,94,.70)';
+    btn.style.color='#86EFAC';
+  } else if(lcAchieved===false){
+    btn.textContent='✗ LC Not Achieved';
+    btn.style.background='rgba(239,68,68,.18)';
+    btn.style.border='1.5px solid rgba(239,68,68,.70)';
+    btn.style.color='#FCA5A5';
+  } else {
+    btn.textContent='— LC Status';
+    btn.style.background='rgba(255,255,255,.07)';
+    btn.style.border='1.5px solid rgba(255,255,255,.20)';
+    btn.style.color='rgba(255,255,255,.35)';
+  }
+}
+function updateLayoutGraphBtn(){
+  const btn=document.getElementById('layout-graph-btn'); if(!btn) return;
+  const count=Object.keys(chartData).length;
+  const badge=count>0?`<span style="position:absolute;top:-5px;right:-5px;background:#15803D;color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:1px 5px;min-width:14px;text-align:center;line-height:14px;pointer-events:none">${count}</span>`:'';
+  btn.innerHTML=`📊 Graph${badge}`;
+}
+function setDay(d){
+  const grid=document.getElementById('grid');
+  if(grid) grid.classList.add('day-exit');
+  setTimeout(()=>{
+    cur=d; viewMode='layout'; render();
+    const g2=document.getElementById('grid');
+    if(g2){g2.classList.remove('day-exit');g2.classList.add('day-enter');setTimeout(()=>g2.classList.remove('day-enter'),150);}
+  },100);
+}
+document.addEventListener('keydown',e=>{
+  if(viewMode==='layout'){
+    if(e.key==='ArrowRight'&&cur<importedDayNums[importedDayNums.length-1]) setDay(cur+1);
+    if(e.key==='ArrowLeft'&&cur>importedDayNums[0]) setDay(cur-1);
+  }
+});
+
+// ── LC Targets Entry Popup ──
+function showLCEdit(){
+  const days=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+  const body=document.getElementById('lc-edit-body'); if(!body) return;
+  const inp=(id,val,ph)=>`<input id="${id}" type="number" min="0" placeholder="${ph}" value="${val??''}" style="width:80px;height:32px;border-radius:6px;border:1.5px solid #1E3A5F;background:#0A1628;color:#E2E8F0;font-size:13px;font-weight:700;text-align:center;padding:0 8px">`;
+  body.innerHTML=
+    `<div style="display:flex;align-items:center;gap:8px;padding:6px 14px">
+      <span style="font-size:10px;font-weight:700;color:#475569;min-width:110px;text-transform:uppercase;letter-spacing:.4px">Day</span>
+      <span style="font-size:10px;font-weight:700;color:#475569;width:80px;text-align:center;text-transform:uppercase;letter-spacing:.4px">Pcs / Hr</span>
+      <span style="font-size:10px;font-weight:700;color:#475569;width:80px;text-align:center;text-transform:uppercase;letter-spacing:.4px">Target Eff%</span>
+    </div>
+    ${days.map(d=>{
+      const t=lcTargets[d]||{};
+      const clr=CLR[`D${Math.min(7,d)}`]||'#475569';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:#0A1628;border-radius:8px;border-left:3px solid ${clr}">
+        <span style="font-size:13px;font-weight:700;color:${clr};min-width:110px">Day ${d} <span style="font-size:10px;color:#475569;font-weight:600">${fmtShortDate(d)}</span></span>
+        ${inp(`lc-pcs-${d}`,t.pcsHr,'e.g. 9')}
+        ${inp(`lc-eff-${d}`,t.eff,'e.g. 45')}
+      </div>`;
+    }).join('')}`;
+  document.getElementById('lc-edit-popup').style.display='flex';
+}
+function closeLCEdit(){ document.getElementById('lc-edit-popup').style.display='none'; }
+function saveLCEdit(){
+  const days=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+  days.forEach(d=>{
+    const p=document.getElementById(`lc-pcs-${d}`); const e=document.getElementById(`lc-eff-${d}`);
+    const pv=p&&p.value!==''?parseFloat(p.value):null;
+    const ev=e&&e.value!==''?parseFloat(e.value):null;
+    if(pv!=null||ev!=null) lcTargets[d]={pcsHr:pv,eff:ev};
+    else delete lcTargets[d];
+  });
+  // auto-detect: lowest calendar day that has an entry = LC start
+  const filled=Object.keys(lcTargets).map(Number);
+  lcStartCalDay=filled.length>0?Math.min(...filled):null;
+  closeLCEdit(); render();
+}
+
+// ── Graph Panel ──
+let activeChartInst=null;
+function showGraphPanel(){
+  const p=document.getElementById('graph-panel');
+  p.style.display='flex';
+  document.getElementById('left-toolbar').style.display='none';
+  document.getElementById('layout-top-right').style.display='none';
+  activeGraphDay=cur;
+  renderGraphDayBtns();
+  renderGraphPanel();
+}
+function updateGraphImportBtn(){
+  if(typeof updateGraphNoteBtns==='function') updateGraphNoteBtns();
+  const btn=document.getElementById('graph-import-btn'); if(!btn) return;
+  const hasData=Object.keys(chartData).length>0;
+  if(hasData){
+    btn.innerHTML='🗑 Clear &amp; Import Excel Files';
+    btn.style.background='rgba(220,38,38,.18)';
+    btn.style.borderColor='rgba(220,38,38,.60)';
+    btn.style.color='#FCA5A5';
+  } else {
+    btn.innerHTML='📥 Import Excel Files';
+    btn.style.background='rgba(34,197,94,.15)';
+    btn.style.borderColor='rgba(34,197,94,.55)';
+    btn.style.color='#86EFAC';
+  }
+}
+function renderGraphDayBtns(){
+  updateGraphImportBtn();
+  const el=document.getElementById('graph-day-btns'); if(!el) return;
+  const days=Object.keys(chartData).map(Number).sort((a,b)=>a-b);
+  if(!days.length){
+    el.innerHTML=`<span style="font-size:12px;color:#475569;font-style:italic">No graph data yet — import Excel files above</span>`;
+    return;
+  }
+  el.innerHTML=days.map(d=>{
+      const a=d===activeGraphDay;
+      const clr=CLR[`D${Math.min(7,d)}`]||'#2563EB';
+      const dateLabel=fmtGraphDate(d);
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <button onclick="setGraphDay(${d})" style="padding:0 20px;height:38px;border-radius:8px;font-size:13px;font-weight:700;background:${a?clr:'rgba(255,255,255,.10)'};border:2px solid ${a?clr:'#2A4A7A'};color:${a?'#fff':'#CBD5E1'};cursor:pointer">Day ${d}</button>
+        <span style="font-size:11px;color:${a?'#5EEAD4':'#475569'};font-weight:600;letter-spacing:.3px">${dateLabel}</span>
+      </div>`;
+    }).join('');
+}
+function setGraphDay(d){ selectedGraphCol=null; activeGraphDay=d; renderGraphDayBtns(); renderGraphPanel(); }
+
+function renderGraphTable(){
+  const wrap=document.getElementById('graph-table-wrap'); if(!wrap||!_gRD) return;
+  const {masterNames,alignedRows,nameToIdx,d,COL_W,ROW_H,NAME_H,labelColW,n}=_gRD;
+  const sel=selectedGraphCol;
+  const lbl=(h)=>`padding:0 5px;font-size:11px;font-weight:700;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;vertical-align:middle;white-space:nowrap;height:${h}px;max-height:${h}px;overflow:hidden`;
+  const mkCell=(i,v)=>{
+    const hi=sel===i; const txt=hi?'#DC2626':'#1E293B'; const bg=hi?'#FEF2F2':'';
+    return `<td style="padding:0 3px;font-size:11px;font-weight:${hi?'800':'400'};color:${txt};background:${bg};text-align:center;border:1px solid #E2E8F0;white-space:nowrap;overflow:hidden;height:${ROW_H}px;max-height:${ROW_H}px;line-height:${ROW_H}px">${v}</td>`;
+  };
+  const mkNameCell=(i,nm,present)=>{
+    const hi=sel===i; const txt=hi?'#DC2626':(present?'#1E293B':'#CBD5E1'); const bg=hi?'#FEF2F2':'';
+    return `<td style="padding:2px 1px;font-size:10px;font-weight:${hi?'800':'400'};color:${txt};background:${bg};text-align:center;border:1px solid #E2E8F0;overflow:hidden;writing-mode:vertical-lr;transform:rotate(180deg);height:${NAME_H}px;max-height:${NAME_H}px;vertical-align:bottom">${present?nm:''}</td>`;
+  };
+  const mkIdCell=(i,v,present)=>{
+    const hi=sel===i; const txt=hi?'#DC2626':(present?'#475569':'#CBD5E1'); const bg=hi?'#FEF2F2':'';
+    return `<td style="padding:2px 1px;font-size:9.5px;font-weight:${hi?'800':'400'};color:${txt};background:${bg};text-align:center;border:1px solid #E2E8F0;overflow:hidden;writing-mode:vertical-lr;transform:rotate(180deg);height:${NAME_H}px;max-height:${NAME_H}px;vertical-align:bottom">${present?v:''}</td>`;
+  };
+  const mkSlCell=(i,v)=>{
+    const hi=sel===i; const present=nameToIdx[masterNames[i]]!==undefined&&v!=null&&v!=='';
+    const txt=hi?'#DC2626':'#1E293B'; const bg=hi?'#FEF2F2':'';
+    const nm=masterNames[i]?.replace(/'/g,"\\'");
+    const click=present?`onclick="promptDeleteGraphPerson('${nm}')" title="Click to remove this operator" style="cursor:pointer;`:`style="`;
+    return `<td ${click}padding:0 3px;font-size:11px;font-weight:${hi?'800':'400'};color:${txt};background:${bg};text-align:center;border:1px solid #E2E8F0;white-space:nowrap;overflow:hidden;height:${ROW_H}px;max-height:${ROW_H}px;line-height:${ROW_H}px">${present?v:''}</td>`;
+  };
+  const tblDefs=[
+    {key:'cap',    label:'Capacity Avg',   fmt:v=>v!=null?v:''},
+    {key:'cycle',  label:'Cycle Time(Min)',fmt:v=>v!=null?(+v).toFixed(3):''},
+    {key:'useTime',label:'Use Time Avg',   fmt:v=>v!=null?v:''},
+    {key:'target', label:'Target Pos(Hr)', fmt:v=>v!=null?v:''},
+    {key:'bundle', label:'Bundle Qty',     fmt:v=>v!=null?v:''},
+    {key:'mc',     label:'M/C',            fmt:v=>v!=null?v:''},
+    {key:'name',   label:'Employee Name',  isName:true},
+    {key:'empId',  label:'Employee ID',    isEmpId:true},
+    {key:'sl',     label:'S L',            isSl:true},
+  ];
+  const tblHTML=tblDefs.map(({key,label,fmt,isName,isEmpId,isSl})=>{
+    const rowH=(isName||isEmpId)?NAME_H:ROW_H;
+    let vals;
+    if(isName){
+      vals=masterNames.map((nm,i)=>{
+        const present=nameToIdx[nm]!==undefined;
+        return mkNameCell(i,nm,present);
+      }).join('');
+    } else if(isEmpId){
+      vals=(alignedRows.empId||[]).map((v,i)=>{
+        const present=v!=null&&String(v).trim()!=='';
+        return mkIdCell(i,present?v:'',present);
+      }).join('');
+    } else if(isSl){
+      vals=(alignedRows.sl||[]).map((v,i)=>mkSlCell(i,v!=null?v:'')).join('');
+    } else {
+      vals=(alignedRows[key]||[]).map((v,i)=>mkCell(i,fmt(v))).join('');
+    }
+    return `<tr style="height:${rowH}px;max-height:${rowH}px"><td style="${lbl(rowH)}">${label}</td>${vals}</tr>`;
+  }).join('');
+  wrap.innerHTML=`<table style="border-collapse:collapse;table-layout:fixed;margin-top:0"><colgroup><col style="width:${labelColW}px"><col style="width:${COL_W}px" span="${n}"></colgroup><tbody>${tblHTML}</tbody></table>`;
+}
+
+window.promptDeleteGraphPerson=function(nm){
+  if(!nm||!_gRD) return;
+  _pendingDelete={nm,d:_gRD.d};
+  const popup=document.getElementById('graph-delete-popup');
+  document.getElementById('graph-delete-msg').innerHTML=`Remove <strong style="color:#F87171">${nm}</strong> from <strong style="color:#F87171">Day ${_gRD.d}</strong> only?<br><span style="font-size:12px;opacity:.7">This does not affect other days.</span>`;
+  popup.style.display='flex';
+};
+window.cancelDeleteGraphPerson=function(){
+  _pendingDelete=null;
+  document.getElementById('graph-delete-popup').style.display='none';
+};
+window.confirmDeleteGraphPerson=function(){
+  if(!_pendingDelete) return;
+  const {nm,d}=_pendingDelete;
+  const cd=chartData[d]; if(!cd) return;
+  const idx=cd.names.indexOf(nm); if(idx===-1) return;
+  cd.names.splice(idx,1);
+  cd.capacities.splice(idx,1);
+  Object.keys(cd.tableRows||{}).forEach(k=>{ if(Array.isArray(cd.tableRows[k])) cd.tableRows[k].splice(idx,1); });
+  _pendingDelete=null;
+  selectedGraphCol=null;
+  document.getElementById('graph-delete-popup').style.display='none';
+  if(activeChartInst){activeChartInst.destroy();activeChartInst=null;}
+  renderGraphDayBtns();
+  renderGraphPanel();
+};
+function backToMain(){
+  document.getElementById('graph-panel').style.display='none';
+  document.getElementById('left-toolbar').style.display='block';
+  document.getElementById('layout-top-right').style.display='flex';
+  if(activeGraphDay && importedDays[activeGraphDay]){ cur=activeGraphDay; render(); }
+}
+function toggleBurger(){
+  const m=document.getElementById('burger-menu');
+  m.style.display=m.style.display==='flex'?'none':'flex';
+}
+function closeBurger(){
+  const m=document.getElementById('burger-menu');
+  if(m) m.style.display='none';
+}
+document.addEventListener('click',e=>{
+  const tb=document.getElementById('left-toolbar');
+  if(tb&&!tb.contains(e.target)) closeBurger();
+});
+// ── Excel Graph Import ──
+function triggerImportGraphExcel(){
+  const count=Object.keys(chartData).length;
+  if(count>0){
+    document.getElementById('graph-import-warn-msg').innerHTML=
+      `You have <strong style="color:#FCD34D">${count} day${count>1?'s':''}</strong> of graph data already imported.<br><span style="font-size:12px;opacity:.7">This will permanently delete all of it before importing new files.</span>`;
+    document.getElementById('graph-import-warn-popup').style.display='flex';
+    return;
+  }
+  _openGraphFilePicker();
+}
+function cancelGraphImport(){ document.getElementById('graph-import-warn-popup').style.display='none'; }
+function confirmGraphImport(){
+  document.getElementById('graph-import-warn-popup').style.display='none';
+  chartData={}; activeGraphDay=null;
+  _openGraphFilePicker();
+}
+function _openGraphFilePicker(){
+  let inp=document.getElementById('_graphFileInp');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.id='_graphFileInp'; inp.type='file'; inp.accept='.xls,.xlsx';
+    inp.multiple=true; inp.style.cssText='position:fixed;top:-999px;left:-999px;opacity:0';
+    document.body.appendChild(inp);
+  }
+  inp.value=''; // reset so same file can be re-selected
+  inp.onchange=e=>{
+    const files=[...e.target.files]; if(!files.length) return;
+    let done=0, parsed=0;
+    showGraphToast(`Reading ${files.length} file(s)…`);
+    files.forEach(f=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        try{ const ok=parseGraphExcel(ev.target.result,f.name); if(ok) parsed++; }
+        catch(err){ console.warn('Graph parse error:',f.name,err); showGraphToast('ERR: '+String(err).slice(0,120),10000); }
+        done++;
+        if(done===files.length){
+          if(parsed===0){ showGraphToast('⚠ No data found — check Excel label rows',3500); return; }
+          resequenceChartData();
+          showGraphPanel();
+          showGraphToast(`✓ Loaded ${parsed} of ${files.length} file(s)`);
+        }
+      };
+      reader.readAsArrayBuffer(f);
+    });
+  };
+  inp.click();
+}
+function showGraphToast(msg,ms=2200){
+  let t=document.getElementById('_gToast');
+  if(!t){ t=document.createElement('div'); t.id='_gToast';
+    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1E293B;color:#E2E8F0;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.5);pointer-events:none;transition:opacity .3s';
+    document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._hide); t._hide=setTimeout(()=>t.style.opacity='0',ms);
+}
+function parseGraphExcel(buffer,fileName){
+  if(typeof XLSX==='undefined'){ showGraphToast('ERR: SheetJS not loaded',8000); return false; }
+  let wb,ws;
+  try{
+    wb=XLSX.read(new Uint8Array(buffer),{type:'array',cellText:true,cellDates:false});
+    ws=wb.Sheets[wb.SheetNames[0]];
+  }catch(e){ showGraphToast('ERR read: '+String(e.message||e).slice(0,100),8000); return false; }
+  if(!ws||!ws['!ref']){ showGraphToast('ERR: empty sheet in '+fileName,5000); return false; }
+
+  // Build rows by direct cell access — bypasses sheet_to_json inlineStr bug in some SheetJS builds
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  const R0=range.s.r, C0=range.s.c, RMAX=range.e.r, CMAX=range.e.c;
+  const NCOLS=CMAX+1; // always index from col 0 so indices match A=0,B=1,C=2…
+  function wsCell(ri,ci){
+    const addr=XLSX.utils.encode_cell({r:ri,c:ci});
+    const cell=ws[addr];
+    if(!cell) return null;
+    // v = raw value; w = formatted text (SheetJS sets w for inlineStr); r = rich text html
+    let v=cell.v;
+    if(v===undefined||v===null) v=cell.w;
+    if(v===undefined||v===null){
+      // last resort: strip tags from rich-text html
+      if(cell.r) v=cell.r.replace(/<[^>]+>/g,'').trim();
+    }
+    return (v===undefined)?null:v;
+  }
+  const rows=[];
+  for(let ri=R0;ri<=RMAX;ri++){
+    const row=[];
+    for(let ci=0;ci<NCOLS;ci++) row.push(wsCell(ri,ci));
+    rows.push(row);
+  }
+  // rows[] is now 0-indexed from row R0; because R0 is almost always 0, indices stay natural
+
+  // 1. Find date string anywhere in first 5 rows
+  let metaStr='';
+  for(let ri=0;ri<Math.min(5,rows.length);ri++){
+    (rows[ri]||[]).forEach(c=>{ if(c&&String(c).includes('Report Date')) metaStr=String(c); });
+  }
+
+  // 2. Classify rows by label in col B (index 1)
+  const PATS={
+    cap:/avg\s*capacity/i, cycle:/cycle\s*time/i, useTime:/avg[\s\S]*?use[\s\S]*?time/i,
+    target:/target\s*p[co]s/i, bundle:/bundle\s*qty/i, mc:/^m[\s\/]?c$/i,
+    name:/employee\s*name/i, empId:/employee\s*id/i, sl:/^s[\s_]?l$/i
+  };
+  const rowMap={};
+  rows.forEach(r=>{
+    // Scan first 6 cols for a non-empty label
+    let lbl='';
+    for(let ci=0;ci<6;ci++){
+      const v=r[ci];
+      if(v!==null&&v!==undefined&&String(v).trim()){
+        lbl=String(v).replace(/[\n\r]+/g,' ').trim(); break;
+      }
+    }
+    if(!lbl) return;
+    for(const [key,pat] of Object.entries(PATS)){
+      if(pat.test(lbl)&&!rowMap[key]){ rowMap[key]=r; break; }
+    }
+  });
+  // Fallback: fixed 0-based row indices (cap=4 means openpyxl row 5)
+  const FIXED={cap:4,cycle:5,useTime:6,target:7,bundle:8,mc:9,name:10,empId:11,sl:12};
+  for(const [key,idx] of Object.entries(FIXED)){
+    if(!rowMap[key]&&rows[idx]) rowMap[key]=rows[idx];
+  }
+  if(!rowMap.name){ showGraphToast('ERR: Employee Name row missing in '+fileName,6000); return false; }
+
+  // 3. Extract operators — Employee Name row, from col C (index 2) onward, skip blanks
+  const nameRow=rowMap.name;
+  const maxCol=Math.max(nameRow.length||0, NCOLS);
+  const operators=[];
+  for(let ci=2;ci<maxCol;ci++){
+    const nm=nameRow[ci];
+    if(nm!==null&&nm!==undefined&&String(nm).trim()){
+      operators.push({col:ci,name:String(nm).trim()});
+    }
+  }
+  if(!operators.length){ showGraphToast('ERR: no operators found in '+fileName,6000); return false; }
+
+  // 4. Build data arrays — each operator uses its own column index across all metric rows
+  const gv=(row,col)=>{ if(!row) return null; const v=row[col]; return (v!==null&&v!==undefined)?v:null; };
+  const names=[],capacities=[],tableRows={cap:[],cycle:[],useTime:[],target:[],bundle:[],mc:[],empId:[],sl:[]};
+  operators.forEach(({col,name})=>{
+    const cap=gv(rowMap.cap,col);
+    names.push(name);
+    capacities.push(cap!==null?Number(cap)||0:0);
+    tableRows.cap.push(cap!==null?Number(cap):null);
+    tableRows.cycle.push(gv(rowMap.cycle,col));
+    tableRows.useTime.push(gv(rowMap.useTime,col));
+    tableRows.target.push(gv(rowMap.target,col));
+    tableRows.bundle.push(gv(rowMap.bundle,col));
+    tableRows.mc.push(gv(rowMap.mc,col));
+    tableRows.empId.push(gv(rowMap.empId,col));
+    tableRows.sl.push(gv(rowMap.sl,col));
+  });
+
+  // 5. Match to layout day by report date
+  const graphDate=parseReportDate(metaStr);
+  let dayNum=null;
+  if(graphDate){
+    const gTime=new Date(graphDate.toDateString()).getTime();
+    for(const [d,info] of Object.entries(importedDays)){
+      const id=parseReportDate(info.dateStr);
+      if(id&&new Date(id.toDateString()).getTime()===gTime){ dayNum=Number(d); break; }
+    }
+    if(dayNum===null){
+      const existing=Object.keys(importedDays).map(Number).sort((a,b)=>a-b);
+      if(existing.length){
+        const base=parseReportDate(importedDays[existing[0]].dateStr);
+        if(base){ const diff=Math.round((graphDate-base)/(864e5)); dayNum=existing[0]+diff; }
+      }
+    }
+  }
+  if(dayNum===null) dayNum=Object.keys(chartData).length+1;
+
+  chartData[dayNum]={names,capacities,tableRows,dateStr:metaStr,fileName};
+  activeGraphDay=dayNum;
+  return true;
+}
+function removeChartDay(d){
+  delete chartData[d];
+  const days=Object.keys(chartData).map(Number).sort((a,b)=>a-b);
+  activeGraphDay=days.length?days[0]:cur;
+  renderGraphDayBtns(); renderGraphPanel(); render();
+}
+// Build master operator list across ALL imported days (preserves order, dedupes)
+function buildMasterNames(){
+  const seen=new Set(),list=[];
+  Object.keys(chartData).sort((a,b)=>+a-+b).forEach(d=>{
+    (chartData[d]?.names||[]).forEach(nm=>{if(nm&&!seen.has(nm)){seen.add(nm);list.push(nm);}});
+  });
+  return list;
+}
+
+function renderGraphPanel(){
+  const c=document.getElementById('graph-content'); if(!c) return;
+  if(activeChartInst){activeChartInst.destroy();activeChartInst=null;}
+
+  if(!Object.keys(chartData).length){
+    c.innerHTML=`<div style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:100px 0">
+      <div style="font-size:60px;opacity:.2">📊</div>
+      <div style="font-size:20px;font-weight:700;color:#475569">No graph data yet</div>
+      <div style="font-size:14px;color:#334155;margin-top:4px">Click <strong style="color:#86EFAC">📥 Import Excel Files</strong> above — upload all days at once</div>
+    </div>`;
+    return;
+  }
+  const d=activeGraphDay;
+  const cd=chartData[d];
+  if(!cd){
+    c.innerHTML=`<div style="color:#475569;font-size:14px;padding:60px;text-align:center">No graph data for Day ${d}</div>`;
+    return;
+  }
+
+  // ── Master name list: same column = same person across all days ──
+  const masterNames=buildMasterNames();
+  const nameToIdx={};
+  (cd.names||[]).forEach((nm,i)=>{if(nm)nameToIdx[nm]=i;});
+  const n=masterNames.length;
+
+  // Align capacity + tableRows to master list (null = operator not in this day)
+  const alignedCap=masterNames.map(nm=>nameToIdx[nm]!==undefined?cd.capacities[nameToIdx[nm]]:null);
+  const alignedRows={};
+  Object.keys(cd.tableRows||{}).forEach(key=>{
+    alignedRows[key]=masterNames.map(nm=>nameToIdx[nm]!==undefined?(cd.tableRows[key][nameToIdx[nm]]??null):null);
+  });
+
+  const TEAL='#009688';
+  const TEAL_ABSENT='rgba(0,150,136,0.18)';
+  const ROW_H=30;
+  const NAME_H=110; // tall row for vertical employee names / IDs
+  // ── Column width: minimum 28px so content overflows and can be panned ──
+  const labelColW=52;
+  const contentEl=document.getElementById('graph-content');
+  const availW=Math.max(400,(contentEl?contentEl.clientWidth:window.innerWidth-80)-22);
+  const fitW=Math.floor((availW-labelColW)/Math.max(1,n));
+  const COL_W=Math.max(28,fitW);
+  const chartW=labelColW+COL_W*n;
+  // ── Fit height to container — no vertical scroll ──
+  const tableH=7*ROW_H+2*NAME_H; // 7×30 + 2×110 = 430
+  const contentH=contentEl?contentEl.clientHeight:(window.innerHeight-140);
+  const subtitleH=34;
+  const cardPadH=18;
+  const chartH=Math.max(200, contentH - subtitleH - cardPadH - tableH - 8);
+  const dateLabel=fmtGraphDate(d)||cd.dateStr.match(/(\d{1,2}-\w+-\d{4})/)?.[1]||'';
+
+  // Helper: label cell style with variable height
+  const lbl=(h)=>`padding:0 5px;font-size:11px;font-weight:700;color:#475569;background:#F1F5F9;border:1px solid #CBD5E1;writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;vertical-align:middle;white-space:nowrap;height:${h}px;max-height:${h}px;overflow:hidden`;
+  const CELL=`padding:0 3px;font-size:11px;color:#1E293B;text-align:center;border:1px solid #E2E8F0;white-space:nowrap;overflow:hidden;height:${ROW_H}px;max-height:${ROW_H}px;line-height:${ROW_H}px`;
+  // Name cell: vertical text bottom-to-top, matches Excel rotation
+  const mkNameCell=(present)=>`padding:2px 1px;font-size:10px;color:${present?'#1E293B':'#CBD5E1'};text-align:center;border:1px solid #E2E8F0;overflow:hidden;writing-mode:vertical-lr;transform:rotate(180deg);height:${NAME_H}px;max-height:${NAME_H}px;vertical-align:bottom`;
+  const mkIdCell=(present)=>`padding:2px 1px;font-size:9.5px;color:${present?'#475569':'#CBD5E1'};text-align:center;border:1px solid #E2E8F0;overflow:hidden;writing-mode:vertical-lr;transform:rotate(180deg);height:${NAME_H}px;max-height:${NAME_H}px;vertical-align:bottom`;
+
+  // Store render data for renderGraphTable()
+  _gRD={masterNames,alignedRows,nameToIdx,d,COL_W,ROW_H,NAME_H,labelColW,n};
+
+  c.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div>
+        <span style="font-size:16px;font-weight:800;color:#1E293B">Day ${d}</span>
+        <span style="font-size:12px;color:#64748B;margin-left:8px">${dateLabel}</span>
+        <span style="font-size:11px;color:#94A3B8;margin-left:10px">${(cd.names||[]).length} operators this day · ${n} total across all days</span>
+      </div>
+    </div>
+    <div id="graph-scroll" style="overflow:visible;background:#fff;border-radius:8px;padding:8px 10px;box-shadow:0 1px 8px rgba(0,0,0,.15);min-width:${chartW+20}px;width:${chartW+20}px">
+      <canvas id="graph-canvas" width="${chartW}" height="${chartH}" style="display:block"></canvas>
+      <div id="graph-table-wrap"></div>
+    </div>`;
+  renderGraphTable();
+
+  const canvas=document.getElementById('graph-canvas');
+  const barColors=masterNames.map(nm=>nameToIdx[nm]!==undefined?TEAL:TEAL_ABSENT);
+  const datalabelPlugin={
+    id:'datalabels',
+    afterDatasetsDraw(chart){
+      const {ctx}=chart;
+      chart.data.datasets[0].data.forEach((val,i)=>{
+        if(val===null||val===undefined||val===0) return;
+        const meta=chart.getDatasetMeta(0);
+        const bar=meta.data[i];
+        ctx.save();
+        ctx.fillStyle='#222';
+        ctx.font='bold 9px Arial,sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='bottom';
+        ctx.fillText(val,bar.x,bar.y-2);
+        ctx.restore();
+      });
+    }
+  };
+  activeChartInst=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    plugins:[datalabelPlugin],
+    data:{
+      labels:masterNames,
+      datasets:[{
+        label:'Avg Capacity',
+        data:alignedCap,
+        backgroundColor:barColors,
+        borderColor:barColors,
+        borderWidth:0,borderRadius:0,
+        barPercentage:0.75,categoryPercentage:0.85
+      }]
+    },
+    options:{
+      responsive:false,
+      animation:{duration:200},
+      layout:{padding:{top:18,right:10,bottom:0,left:0}},
+      onClick:(e,elements)=>{
+        selectedGraphCol=elements.length?elements[0].index:null;
+        renderGraphTable();
+      },
+      plugins:{
+        legend:{display:true,position:'top',align:'start',labels:{color:'#333',font:{size:11},boxWidth:14,padding:10}},
+        tooltip:{callbacks:{label:ctx=>`Avg Capacity: ${ctx.parsed.y??'—'}`}}
+      },
+      scales:{
+        x:{
+          grid:{color:'rgba(0,0,0,.06)'},
+          ticks:{maxRotation:90,minRotation:90,color:'#444',font:{size:9},padding:2,autoSkip:false},
+          border:{display:false}
+        },
+        y:{
+          min:0,
+          grid:{color:'rgba(0,0,0,.07)'},
+          ticks:{color:'#666',font:{size:10},padding:4},
+          border:{display:false}
+        }
+      }
+    }
+  });
+  // Snap table column widths to match chart bar widths exactly
+  requestAnimationFrame(()=>{
+    if(!activeChartInst) return;
+    const ca=activeChartInst.chartArea;
+    const labelCol=document.getElementById('label-col');
+    const dataCols=document.querySelectorAll('#graph-table .data-col');
+    if(labelCol) labelCol.style.width=Math.round(ca.left)+'px';
+    const barW=(ca.right-ca.left)/n;
+    dataCols.forEach(col=>col.style.width=Math.round(barW)+'px');
+  });
+}
+
+// ── Export: snapshot current data into standalone HTML ──
+function exportHTML(){
+  const src=document.documentElement.outerHTML;
+  const injected=src
+    .replace(
+      /\/\/ ── DATA ──\s*\nlet ALL_WS=.*?let importedDays=\{.*?\};/s,
+      `// ── DATA ──\n`+
+      `let ALL_WS=${JSON.stringify(ALL_WS)}; let smvM=${JSON.stringify(smvM)}; let REAL=${JSON.stringify(REAL)}; let importedDays=${JSON.stringify(importedDays)};`
+    )
+    .replace(/let chartData=\{[\s\S]*?\};/,`let chartData=${JSON.stringify(chartData)};`)
+    .replace(/let headerInfo=\{[^;]+\};/,`let headerInfo=${JSON.stringify(headerInfo)};`)
+    .replace(/let lcTargets=\{[^;]*\};/,`let lcTargets=${JSON.stringify(lcTargets)};`)
+    .replace(/let lcStartCalDay=[^;]+;/,`let lcStartCalDay=${JSON.stringify(lcStartCalDay)};`)
+    .replace(/let lcAchieved=[^;]+;/,`let lcAchieved=${JSON.stringify(lcAchieved)};`)
+    .replace(/let cur=\d+;/,`let cur=${cur};`)
+    .replace(/let viewMode='[^']+';/,`let viewMode='${viewMode}';`)
+    .replace(/let wsComments=\{[^;]*\};/,`let wsComments=${JSON.stringify(wsComments)};`)
+    .replace(/let graphNotes=\{[^;]*\};/,`let graphNotes=${JSON.stringify(graphNotes)};`);
+  const blob=new Blob([injected],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const line=(headerInfo.line||'PIB_Layout').replace(/\s/g,'');
+  a.download=`${line}.html`;
+  a.click();
+}
+
+
+render();
+
+// ── Drag-to-scroll on grid-wrap ──
+(function(){
+  const wrap=document.getElementById('grid-wrap');
+  const scroll=document.getElementById('grid-scroll');
+  let dragging=false,startX=0,scrollLeft=0;
+  wrap.addEventListener('mousedown',e=>{
+    dragging=true; startX=e.pageX; scrollLeft=scroll.scrollLeft;
+    wrap.style.cursor='grabbing';
+  });
+  document.addEventListener('mouseup',()=>{ dragging=false; wrap.style.cursor='grab'; });
+  document.addEventListener('mousemove',e=>{
+    if(!dragging) return;
+    e.preventDefault();
+    scroll.scrollLeft=scrollLeft-(e.pageX-startX);
+  });
+  // Hide scrollbar via style injection
+  const st=document.createElement('style');
+  st.textContent='#grid-scroll::-webkit-scrollbar{display:none}';
+  document.head.appendChild(st);
+})();
+</script>
+
+<!-- ── WS Comment styles ── -->
+<style>
+@keyframes _wcBlink{
+  0%,45%  {outline-color:#E53E3E;border-top-color:#E53E3E;box-shadow:0 -4px 16px rgba(229,62,62,.8)}
+  50%,95% {outline-color:transparent;border-top-color:transparent;box-shadow:none}
+  100%    {outline-color:#E53E3E;border-top-color:#E53E3E;box-shadow:0 -4px 16px rgba(229,62,62,.8)}
+}
+@keyframes _wcIconBlink{
+  0%,45%  {opacity:1}
+  50%,95% {opacity:0}
+  100%    {opacity:1}
+}
+</style>
+
+<!-- ── WS Hover Tooltip ── -->
+<div id="_wsTip" style="display:none;position:fixed;z-index:99998;background:#fff;border:2px solid #E53E3E;border-radius:6px;box-shadow:0 3px 12px rgba(229,62,62,.25);padding:7px 11px;max-width:220px;pointer-events:none;font-family:Arial,sans-serif">
+  <div id="_wsTipBody" style="font-size:11px;color:#202124;line-height:1.5;white-space:pre-wrap;word-break:break-word"></div>
+</div>
+
+<!-- ── LC Status Warning Popup ── -->
+<div id="_lcWarnPop" style="display:none;position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.50);align-items:center;justify-content:center">
+  <div style="background:#0F2044;border:2px solid #F59E0B;border-radius:12px;padding:28px 36px;text-align:center;min-width:320px;box-shadow:0 16px 48px rgba(0,0,0,.65)">
+    <div style="font-size:28px;margin-bottom:10px">⚠️</div>
+    <div id="_lcWarnMsg" style="font-size:14px;color:#CBD5E1;margin-bottom:22px;line-height:1.6"></div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button onclick="_cancelLCChange()" style="padding:0 24px;height:38px;border-radius:7px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08);border:1.5px solid #334155;color:#94A3B8;cursor:pointer">Cancel</button>
+      <button onclick="_confirmLCChange()" style="padding:0 24px;height:38px;border-radius:7px;font-size:13px;font-weight:700;background:#F59E0B;border:1.5px solid #FCD34D;color:#0F172A;cursor:pointer">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Graph Note Dialog ── -->
+<div id="_gnBackdrop" style="display:none;position:fixed;inset:0;z-index:99990;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:rgba(0,0,0,.18)"></div>
+<div id="_gnDlg" style="display:none;position:fixed;z-index:99999;background:#fff;border:1px solid #dadce0;border-radius:7px;box-shadow:0 8px 32px rgba(0,0,0,.28);width:310px;font-family:Arial,sans-serif;overflow:hidden">
+  <div id="_gnBar" style="background:#f1f3f4;border-bottom:1px solid #e0e0e0;padding:7px 10px;display:flex;align-items:center;gap:8px;cursor:move;user-select:none">
+    <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px">📝</div>
+    <div style="flex:1;min-width:0">
+      <div id="_gnTitle" style="font-size:10px;font-weight:700;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="_gnSub" style="font-size:9px;color:#5f6368;margin-top:1px">⚠ Problem / Comment</div>
+    </div>
+    <span onclick="closeGraphNote()" style="cursor:pointer;color:#5f6368;font-size:13px;line-height:1;padding:1px 3px;flex-shrink:0" title="Close">✕</span>
+  </div>
+  <div id="_gnReadArea" style="padding:10px 13px;min-height:60px;max-height:180px;overflow-y:auto;font-size:11px;color:#202124;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:#fff"></div>
+  <div id="_gnReadFooter" style="padding:0 13px 10px;display:flex;justify-content:flex-end">
+    <button onclick="startEditGraphNote()" style="padding:3px 12px;font-size:10px;border:1px solid #dadce0;border-radius:3px;background:#fff;color:#1a73e8;font-weight:700;cursor:pointer">✏ Edit</button>
+  </div>
+  <div id="_gnEditArea" style="display:none;padding:8px 11px 11px">
+    <textarea id="_gnText" rows="7" style="width:100%;box-sizing:border-box;border:1.5px solid #F59E0B;border-radius:4px;font-family:Arial,sans-serif;font-size:11px;line-height:1.55;resize:vertical;padding:7px 9px;color:#202124;outline:none;background:#fffbf0" placeholder="Describe the problem this graph day faced…"></textarea>
+    <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
+      <button onclick="deleteGraphNote()" style="padding:3px 10px;font-size:10px;border:1px solid #e8eaed;border-radius:3px;background:#fff;color:#d93025;font-weight:700;cursor:pointer">🗑 Delete</button>
+      <button onclick="cancelEditGraphNote()" style="padding:3px 10px;font-size:10px;border:1px solid #dadce0;border-radius:3px;background:#fff;color:#5f6368;cursor:pointer">Cancel</button>
+      <button onclick="saveGraphNote()" style="padding:3px 12px;font-size:10px;border:1px solid #1a73e8;border-radius:3px;background:#1a73e8;color:#fff;font-weight:700;cursor:pointer">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Blur backdrop ── -->
+<div id="_wcBackdrop" style="display:none;position:fixed;inset:0;z-index:99990;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:rgba(0,0,0,.18)"></div>
+
+<!-- ── WS Comment Dialog ── -->
+<div id="_wsCommentDlg" style="display:none;position:fixed;z-index:99999;background:#fff;border:1px solid #dadce0;border-radius:7px;box-shadow:0 8px 32px rgba(0,0,0,.28);width:310px;font-family:Arial,sans-serif;overflow:hidden">
+
+  <!-- Header — draggable -->
+  <div id="_wcBar" style="background:#f1f3f4;border-bottom:1px solid #e0e0e0;padding:7px 10px;display:flex;align-items:center;gap:8px;cursor:move;user-select:none">
+    <div style="width:22px;height:22px;background:#4472C4;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div id="_wcTitle" style="font-size:10px;font-weight:700;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="_wcSub" style="font-size:9px;color:#5f6368;margin-top:1px"></div>
+    </div>
+    <span onclick="closeWsComment()" style="cursor:pointer;color:#5f6368;font-size:13px;line-height:1;padding:1px 3px;flex-shrink:0" title="Close">✕</span>
+  </div>
+
+  <!-- Read mode -->
+  <div id="_wcReadArea" style="padding:10px 13px;min-height:60px;max-height:180px;overflow-y:auto;font-size:11px;color:#202124;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:#fff"></div>
+  <div id="_wcReadFooter" style="padding:0 13px 10px;display:flex;justify-content:flex-end">
+    <button onclick="startEditWsComment()" style="padding:3px 12px;font-size:10px;border:1px solid #dadce0;border-radius:3px;background:#fff;color:#1a73e8;font-weight:700;cursor:pointer">✏ Edit</button>
+  </div>
+
+  <!-- Edit mode -->
+  <div id="_wcEditArea" style="display:none;padding:8px 11px 11px">
+    <textarea id="_wsCommentText" rows="7" style="width:100%;box-sizing:border-box;border:1.5px solid #4472C4;border-radius:4px;font-family:Arial,sans-serif;font-size:11px;line-height:1.55;resize:vertical;padding:7px 9px;color:#202124;outline:none;background:#fafcff" placeholder="Describe the problem this workstation faced…"></textarea>
+    <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">
+      <button onclick="deleteWsComment()" style="padding:3px 10px;font-size:10px;border:1px solid #e8eaed;border-radius:3px;background:#fff;color:#d93025;font-weight:700;cursor:pointer">🗑 Delete</button>
+      <button onclick="cancelEditWsComment()" style="padding:3px 10px;font-size:10px;border:1px solid #dadce0;border-radius:3px;background:#fff;color:#5f6368;cursor:pointer">Cancel</button>
+      <button onclick="saveWsComment()" style="padding:3px 12px;font-size:10px;border:1px solid #1a73e8;border-radius:3px;background:#1a73e8;color:#fff;font-weight:700;cursor:pointer">Save</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  let _wcW=null, _wcPrev='';
+  const dlg     =document.getElementById('_wsCommentDlg');
+  const backdrop=document.getElementById('_wcBackdrop');
+  const txt     =document.getElementById('_wsCommentText');
+  const title   =document.getElementById('_wcTitle');
+  const sub     =document.getElementById('_wcSub');
+  const rArea   =document.getElementById('_wcReadArea');
+  const rFoot   =document.getElementById('_wcReadFooter');
+  const eArea   =document.getElementById('_wcEditArea');
+  const tip     =document.getElementById('_wsTip');
+
+  function dayKey(w){ return cur+'_'+w; }
+  function wsLabel(w){ return 'WS '+String(w).padStart(2,'0'); }
+
+  // ── Hover tooltip — comment text only, red border ──
+  window.showWsCommentTip=function(w,e){
+    hideWsCommentTip();
+    const v=wsComments[dayKey(w)];
+    if(!v) return;
+    document.getElementById('_wsTipBody').textContent=v;
+    tip.style.display='block';
+    positionNear(tip,e,225,80);
+  };
+  window.hideWsCommentTip=function(){
+    tip.style.display='none';
+  };
+
+  // ── Show / hide backdrop ──
+  function showBackdrop(){ backdrop.style.display='block'; }
+  function hideBackdrop(){ backdrop.style.display='none'; }
+
+  // ── Open dialog ──
+  window.openWsComment=function(w,e){
+    e.stopPropagation();
+    hideWsCommentTip();
+    _wcW=w;
+    title.textContent=wsLabel(w)+' · Day '+cur;
+    sub.textContent='⚠ Problem / Comment';
+    const v=wsComments[dayKey(w)]||'';
+    if(v){
+      rArea.textContent=v;
+      rArea.style.display='';
+      rFoot.style.display='';
+      eArea.style.display='none';
+    } else {
+      rArea.style.display='none';
+      rFoot.style.display='none';
+      eArea.style.display='';
+      txt.value='';
+      setTimeout(()=>txt.focus(),40);
+    }
+    showBackdrop();
+    dlg.style.display='block';
+    positionNear(dlg,e,315,280);
+  };
+
+  window.startEditWsComment=function(){
+    _wcPrev=wsComments[dayKey(_wcW)]||'';
+    txt.value=_wcPrev;
+    rArea.style.display='none';
+    rFoot.style.display='none';
+    eArea.style.display='';
+    setTimeout(()=>txt.focus(),40);
+  };
+
+  window.cancelEditWsComment=function(){
+    const v=wsComments[dayKey(_wcW)]||'';
+    if(v){
+      rArea.textContent=v;
+      rArea.style.display='';
+      rFoot.style.display='';
+      eArea.style.display='none';
+    } else {
+      closeWsComment();
+    }
+  };
+
+  window.closeWsComment=function(){
+    dlg.style.display='none';
+    hideBackdrop();
+    _wcW=null;
+  };
+
+  window.saveWsComment=function(){
+    if(_wcW==null) return;
+    const v=txt.value.trim();
+    const k=dayKey(_wcW);
+    if(v) wsComments[k]=v;
+    else delete wsComments[k];
+    closeWsComment();
+    render();
+  };
+
+  window.deleteWsComment=function(){
+    if(_wcW==null) return;
+    delete wsComments[dayKey(_wcW)];
+    closeWsComment();
+    render();
+  };
+
+  // ── Smart positioning ──
+  function positionNear(el,e,w,h){
+    let x=e.clientX+14, y=e.clientY-20;
+    if(x+w>window.innerWidth-8) x=e.clientX-w-10;
+    if(y+h>window.innerHeight-8) y=window.innerHeight-h-8;
+    if(y<8) y=8;
+    el.style.left=x+'px';
+    el.style.top=y+'px';
+  }
+
+  // ── Close on backdrop click ──
+  backdrop.addEventListener('mousedown',function(){ closeWsComment(); });
+
+  // ── Draggable header ──
+  (function(){
+    const bar=document.getElementById('_wcBar');
+    let ox=0,oy=0,mx=0,my=0;
+    bar.addEventListener('mousedown',function(e){
+      if(e.target.closest('span[title="Close"]')) return;
+      e.preventDefault();
+      mx=e.clientX; my=e.clientY;
+      document.addEventListener('mousemove',drag);
+      document.addEventListener('mouseup',()=>document.removeEventListener('mousemove',drag),{once:true});
+    });
+    function drag(e){
+      ox=mx-e.clientX; oy=my-e.clientY;
+      mx=e.clientX; my=e.clientY;
+      dlg.style.top=(dlg.offsetTop-oy)+'px';
+      dlg.style.left=(dlg.offsetLeft-ox)+'px';
+    }
+  })();
+})();
+</script>
+
+<script>
+// ── Graph Note Dialog ──
+(function(){
+  let _gnDay=null, _gnPrev='';
+  const dlg     =document.getElementById('_gnDlg');
+  const backdrop=document.getElementById('_gnBackdrop');
+  const txt     =document.getElementById('_gnText');
+  const title   =document.getElementById('_gnTitle');
+  const rArea   =document.getElementById('_gnReadArea');
+  const rFoot   =document.getElementById('_gnReadFooter');
+  const eArea   =document.getElementById('_gnEditArea');
+
+  function showBackdrop(){ backdrop.style.display='block'; }
+  function hideBackdrop(){ backdrop.style.display='none'; }
+
+  window.openGraphNote=function(d, from){
+    if(!d) return;
+    _gnDay=Number(d);
+    const dayLabel='Graph · Day '+_gnDay;
+    const dateLabel=chartData[_gnDay]?(' · '+fmtGraphDate(_gnDay)):'';
+    title.textContent=dayLabel+dateLabel;
+    const v=graphNotes[_gnDay]||'';
+    if(v){
+      rArea.textContent=v;
+      rArea.style.display='';
+      rFoot.style.display='';
+      eArea.style.display='none';
+    } else {
+      rArea.style.display='none';
+      rFoot.style.display='none';
+      eArea.style.display='';
+      txt.value='';
+      setTimeout(()=>txt.focus(),40);
+    }
+    showBackdrop();
+    dlg.style.display='block';
+    // Position near the note button
+    const btnId=from==='graph'?'graph-panel-note-btn':'layout-graph-note-btn';
+    const btn=document.getElementById(btnId);
+    if(btn){
+      const r=btn.getBoundingClientRect();
+      let x=r.left, y=r.bottom+6;
+      if(x+310>window.innerWidth-8) x=window.innerWidth-318;
+      if(y+320>window.innerHeight-8) y=r.top-326;
+      dlg.style.left=x+'px'; dlg.style.top=y+'px';
+    } else {
+      dlg.style.left='50%'; dlg.style.top='50%';
+      dlg.style.transform='translate(-50%,-50%)';
+    }
+  };
+
+  window.startEditGraphNote=function(){
+    _gnPrev=graphNotes[_gnDay]||'';
+    txt.value=_gnPrev;
+    rArea.style.display='none';
+    rFoot.style.display='none';
+    eArea.style.display='';
+    setTimeout(()=>txt.focus(),40);
+  };
+
+  window.cancelEditGraphNote=function(){
+    const v=graphNotes[_gnDay]||'';
+    if(v){
+      rArea.textContent=v;
+      rArea.style.display='';
+      rFoot.style.display='';
+      eArea.style.display='none';
+    } else { closeGraphNote(); }
+  };
+
+  window.closeGraphNote=function(){
+    dlg.style.display='none';
+    hideBackdrop();
+    _gnDay=null;
+  };
+
+  window.saveGraphNote=function(){
+    if(_gnDay==null) return;
+    const v=txt.value.trim();
+    if(v) graphNotes[_gnDay]=v; else delete graphNotes[_gnDay];
+    closeGraphNote();
+    updateGraphNoteBtns();
+  };
+
+  window.deleteGraphNote=function(){
+    if(_gnDay==null) return;
+    delete graphNotes[_gnDay];
+    closeGraphNote();
+    updateGraphNoteBtns();
+  };
+
+  // Update note button badge on both panels
+  window.updateGraphNoteBtns=function(){
+    ['layout-graph-note-btn','graph-panel-note-btn'].forEach(id=>{
+      const btn=document.getElementById(id); if(!btn) return;
+      const d=id==='graph-panel-note-btn'?activeGraphDay:cur;
+      const hasNote=d&&graphNotes[d];
+      btn.innerHTML=hasNote?`📝 Note <span style="position:absolute;top:-5px;right:-5px;background:#F59E0B;color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:1px 5px;min-width:14px;text-align:center;line-height:14px;pointer-events:none">✓</span>`:'📝 Note';
+    });
+  };
+
+  backdrop.addEventListener('mousedown',function(){ closeGraphNote(); });
+
+  // ── Draggable header ──
+  (function(){
+    const bar=document.getElementById('_gnBar');
+    let ox=0,oy=0,mx=0,my=0;
+    bar.addEventListener('mousedown',function(e){
+      if(e.target.closest('span[title="Close"]')) return;
+      e.preventDefault();
+      mx=e.clientX; my=e.clientY;
+      dlg.style.transform='';
+      document.addEventListener('mousemove',drag);
+      document.addEventListener('mouseup',()=>document.removeEventListener('mousemove',drag),{once:true});
+    });
+    function drag(e){
+      ox=mx-e.clientX; oy=my-e.clientY;
+      mx=e.clientX; my=e.clientY;
+      dlg.style.top=(dlg.offsetTop-oy)+'px';
+      dlg.style.left=(dlg.offsetLeft-ox)+'px';
+    }
+  })();
+})();
+</script>
+</body>
+</html>
