@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sewing Line Layout — Sample Output (Demo)</title>
+<style>
+  :root{--navy:#16213e;--navy2:#1a1a2e;--card:#fff;--line:#e3e7ef;--text:#1f2430;--muted:#6b7385;--good:#12b76a;--mid:#f59e0b;--bad:#ef4444;--bg:#eef1f7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .top{background:linear-gradient(90deg,var(--navy2),var(--navy));color:#fff;padding:14px 20px;text-align:center;position:relative}
+  .top h1{font-size:19px;letter-spacing:1px}
+  .top .meta{font-size:13px;color:#c7d0e6;margin-top:6px}
+  .demo{position:absolute;top:12px;right:16px;background:var(--mid);color:#3a2a00;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px}
+  .back{position:absolute;top:12px;left:16px;color:#c7d0e6;font-size:13px;text-decoration:none}.back:hover{color:#fff}
+  .benefit{max-width:1100px;margin:16px auto 0;padding:0 20px}
+  .benefit .box{background:#eaf1ff;border:1px solid #d5e3ff;border-radius:12px;padding:14px 18px;font-size:14px;color:#274690}
+  .summary{max-width:1100px;margin:16px auto;padding:0 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;box-shadow:0 4px 14px rgba(20,30,60,.05)}
+  .kpi .v{font-size:26px;font-weight:800;color:var(--navy)}.kpi .l{font-size:12px;color:var(--muted);margin-top:4px}
+  .legend{max-width:1100px;margin:0 auto;padding:0 20px 8px;display:flex;gap:16px;font-size:12px;color:var(--muted);align-items:center}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .grid{max-width:1100px;margin:8px auto 30px;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+  .ws{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--good);border-radius:10px;padding:12px;box-shadow:0 3px 10px rgba(20,30,60,.05)}
+  .ws .wsno{font-size:11px;color:var(--muted);font-weight:700}
+  .ws .op{font-weight:700;font-size:14px;margin:3px 0}
+  .ws .oper{font-size:12px;color:var(--muted);min-height:32px}
+  .ws .row{display:flex;justify-content:space-between;font-size:12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+  .ws .eff{font-weight:800}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:10px 20px 26px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="back" href="index.html">← Portfolio</a>
+    <span class="demo">SAMPLE · DUMMY DATA</span>
+    <h1>SEWING LINE LAYOUT PERIOD VISUAL</h1>
+    <div class="meta">Factory: DEMO &nbsp;|&nbsp; Floor: A &nbsp;|&nbsp; Line: A-01 &nbsp;|&nbsp; Style: 000-DEMO &nbsp;|&nbsp; Layout: 01-Jan-2026</div>
+  </div>
+  <div class="benefit"><div class="box"><b>What this shows:</b> at a glance you can see every operator's PIB, the efficiency they achieve, and where the line's problems/bottlenecks are — so IE can balance the line and fix low performers fast. (This is a dummy sample; the real tool builds this from your performance-report Excel files.)</div></div>
+  <div class="summary" id="sum"></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--good)"></span>≥ 80% efficient</span>
+    <span><span class="dot" style="background:var(--mid)"></span>60–79%</span>
+    <span><span class="dot" style="background:var(--bad)"></span>&lt; 60% (needs attention)</span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="foot">© 2026 SNOWTEX CI Team · Sewing Line Layout — sample output (dummy data) · Built by Hasan A. Azim</div>
+<script>
+const OPS=["Shoulder join","Neck rib join","Neck top stitch","Label attach","Sleeve join","Armhole top st.","Side seam","Sleeve hem","Bottom hem","Care label","Bartack","Final trim"];
+const MC=["OL","FL","OL","SNLS","OL","FL","OL","FL","FL","SNLS","BT","—"];
+const NAMES=["R.Akter","S.Miah","J.Begum","M.Islam","T.Khatun","B.Hasan","N.Roy","F.Ali","L.Das","K.Sultana","H.Rana","D.Parvin"];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+let rows=OPS.map((o,i)=>{const eff=rnd(48,105);return{no:i+1,op:o,mc:MC[i],name:NAMES[i],smv:(Math.random()*.6+.3).toFixed(2),pib:rnd(70,160),eff};});
+const col=e=>e>=80?'var(--good)':e>=60?'var(--mid)':'var(--bad)';
+const avg=Math.round(rows.reduce((s,r)=>s+r.eff,0)/rows.length);
+const pib=rows.reduce((s,r)=>s+r.pib,0);
+document.getElementById('sum').innerHTML=
+ `<div class="kpi"><div class="v">${rows.length}</div><div class="l">Workstations</div></div>
+  <div class="kpi"><div class="v">${avg}%</div><div class="l">Line efficiency</div></div>
+  <div class="kpi"><div class="v">${pib}</div><div class="l">Total PIB (pcs/hr)</div></div>
+  <div class="kpi"><div class="v">${rows.filter(r=>r.eff<60).length}</div><div class="l">Low performers</div></div>`;
+document.getElementById('grid').innerHTML=rows.map(r=>
+ `<div class="ws" style="border-left-color:${col(r.eff)}">
+    <div class="wsno">WS ${r.no} · ${r.mc}</div>
+    <div class="op">${r.op}</div>
+    <div class="oper">${r.name} · SMV ${r.smv}</div>
+    <div class="row"><span>PIB ${r.pib}</span><span class="eff" style="color:${col(r.eff)}">${r.eff}%</span></div>
+  </div>`).join('');
+</script>
+</body>
+</html>

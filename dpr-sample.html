@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DPR Book App — Demo Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+  :root{--bg:#eef1f7;--dark:#1A1A2E;--accent:#FFE066;--green:#1A936F;--card:#fff;--muted:#666;--line:#e3e7ef}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',system-ui,Arial,sans-serif;background:var(--bg);color:#1a1a1a}
+  .top{background:var(--dark);color:#fff;padding:14px 20px;text-align:center;position:relative}
+  .top h1{font-size:18px;letter-spacing:1px;color:var(--accent);font-family:'IBM Plex Mono'}
+  .back{position:absolute;top:14px;left:16px;color:#c7d0e6;font-size:13px;text-decoration:none}.back:hover{color:#fff}
+  .demo{position:absolute;top:12px;right:16px;background:var(--accent);color:#1A1A2E;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px}
+  .layout{max-width:900px;margin:20px auto;padding:0 20px;display:grid;grid-template-columns:340px 1fr;gap:26px;align-items:start}
+  @media(max-width:760px){.layout{grid-template-columns:1fr}}
+  /* phone */
+  .phone{background:var(--dark);border-radius:32px;padding:12px;box-shadow:0 20px 50px rgba(20,30,60,.25);justify-self:center}
+  .screen{background:#F5F4F0;border-radius:22px;overflow:hidden;width:300px;height:560px;display:flex;flex-direction:column}
+  .pj-head{background:var(--dark);padding:12px}
+  .pj-logo{color:var(--accent);font-family:'IBM Plex Mono';font-weight:700;font-size:14px;letter-spacing:2px}
+  .pj-search{margin-top:10px;background:#2A2A40;border:1px solid #444;border-radius:8px;padding:8px 10px;color:#ccc;font-family:'IBM Plex Mono';font-size:12px}
+  .pj-tabs{display:flex;gap:6px;margin-top:10px}
+  .pj-tab{flex:1;background:rgba(255,255,255,.08);border-radius:7px;padding:6px;color:#ccc;font-size:10px;text-align:center;font-weight:700;letter-spacing:1px}
+  .pj-tab.on{background:var(--accent);color:var(--dark)}
+  .pj-body{padding:12px;overflow:auto;flex:1}
+  .pj-lbl{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);letter-spacing:1px;margin:2px 0 8px}
+  .g{background:#fff;border-radius:10px;padding:10px;margin-bottom:8px;border-left:4px solid var(--green);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .g .id{font-family:'IBM Plex Mono';font-weight:700;font-size:13px;color:var(--dark)}
+  .g .t{font-size:11px;color:var(--muted);margin-top:2px}
+  .g.sel{border-left-color:var(--accent);background:#fffdf0}
+  /* detail */
+  .detail{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 6px 20px rgba(20,30,60,.06)}
+  .benefit{background:#fffbe6;border:1px solid #ffe58a;border-radius:12px;padding:14px 16px;font-size:14px;color:#6b5900;margin-bottom:18px}
+  .detail h2{font-size:20px;color:var(--dark);margin-bottom:4px}
+  .detail .sub{color:var(--muted);font-size:13px;margin-bottom:16px;font-family:'IBM Plex Mono'}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .ok{color:var(--green);font-weight:700}.no{color:#e05252;font-weight:700}
+  .feat{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .feat span{font-size:12px;background:#f2f4f8;border:1px solid var(--line);border-radius:100px;padding:4px 11px;color:#444}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:16px 20px 28px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="back" href="index.html">← Portfolio</a>
+    <span class="demo">DEMO PREVIEW</span>
+    <h1>DPR BOOK APP</h1>
+  </div>
+  <div class="layout">
+    <div class="phone"><div class="screen">
+      <div class="pj-head">
+        <div class="pj-logo">◆ DPR BOOK</div>
+        <div class="pj-search">🔍 Search grid: 10.201</div>
+        <div class="pj-tabs"><div class="pj-tab on">GRID №</div><div class="pj-tab">SECTION</div><div class="pj-tab">REPORT</div></div>
+      </div>
+      <div class="pj-body">
+        <div class="pj-lbl">BROWSE BY GRID NUMBER</div>
+        <div class="g sel"><div class="id">10.201 A</div><div class="t">Lockstitch machine (301) — needle &amp; SPI setup</div></div>
+        <div class="g"><div class="id">10.203 B</div><div class="t">Overlock machine 3–4 threads (504–514)</div></div>
+        <div class="g"><div class="id">10.206 B</div><div class="t">Coverstitch machine (406/407/602)</div></div>
+        <div class="g"><div class="id">10.322 B</div><div class="t">Bottom hem for knit product</div></div>
+        <div class="g"><div class="id">10.367 A</div><div class="t">Front zipper assembly</div></div>
+      </div>
+    </div></div>
+
+    <div>
+      <div class="benefit"><b>Why it helps:</b> DPR (Decathlon Production Requirement) points must be known by <b>every department</b>. This app lets anyone look up a garment's <b>grid point</b> by number or section in seconds, jump to the exact DPR book page, and record a compliance status — spreading DPR knowledge across the floor. (Demo preview with dummy status; buyer content kept private.)</div>
+      <div class="detail">
+        <h2>Grid 10.201 A — Lockstitch Machine</h2>
+        <div class="sub">Section 10 · Machines &amp; Assembly</div>
+        <table>
+          <thead><tr><th>DPR check point</th><th>Requirement</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Needle size correct</td><td>DBx1 #11</td><td class="ok">✓ OK</td></tr>
+            <tr><td>SPI (stitch/inch)</td><td>11–12</td><td class="ok">✓ OK</td></tr>
+            <tr><td>Thread tension balanced</td><td>Top = bobbin</td><td class="ok">✓ OK</td></tr>
+            <tr><td>Back-tack / trim</td><td>As spec</td><td class="no">✗ Recheck</td></tr>
+          </tbody>
+        </table>
+        <div class="feat"><span>Grid-number search</span><span>Section browse</span><span>Jump to PDF page</span><span>DPR status report</span><span>Works on phone (offline)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">© 2026 SNOWTEX CI Team · DPR Book App — demo preview (dummy data) · Built by Hasan A. Azim</div>
+</body>
+</html>

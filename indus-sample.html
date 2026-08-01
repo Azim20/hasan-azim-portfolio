@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Indus Report Builder — Demo Preview</title>
+<style>
+  :root{--teal:#0f766e;--teal2:#0fb5a6;--bg:#eef1f7;--card:#fff;--line:#e3e7ef;--text:#1f2430;--muted:#6b7385;--amber:#f59e0b;--bad:#ef4444}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .top{background:linear-gradient(90deg,#0f766e,#115e59);color:#fff;padding:14px 20px;text-align:center;position:relative}
+  .top h1{font-size:18px;letter-spacing:1px}
+  .back{position:absolute;top:14px;left:16px;color:#cdeae6;font-size:13px;text-decoration:none}.back:hover{color:#fff}
+  .demo{position:absolute;top:12px;right:16px;background:var(--amber);color:#3a2a00;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px}
+  .wrap{max-width:1050px;margin:18px auto;padding:0 20px}
+  .benefit{background:#e2f6f3;border:1px solid #bfeee8;border-radius:12px;padding:14px 18px;font-size:14px;color:#0b5f57;margin-bottom:18px}
+  .frame{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(20,30,60,.10);overflow:hidden}
+  .bar{background:#f3f4f6;border-bottom:1px solid var(--line);padding:8px 12px;display:flex;align-items:center;gap:8px}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .url{flex:1;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--muted);margin-left:8px}
+  .app{padding:16px}
+  .app h2{font-size:16px;color:var(--teal);margin-bottom:4px}
+  .app .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .steps{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .step{font-size:12px;background:#e2f6f3;border:1px solid #bfeee8;color:#0b5f57;border-radius:100px;padding:4px 11px;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:8px;border:1px solid var(--line);vertical-align:top}
+  th{background:#0f766e;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  tbody tr:nth-child(even){background:#f7faf9}
+  .ph{display:inline-block;width:54px;height:40px;background:repeating-linear-gradient(45deg,#e5efee,#e5efee 6px,#d7e8e6 6px,#d7e8e6 12px);border:1px dashed #9fc9c3;border-radius:5px;text-align:center;line-height:40px;color:#0b5f57;font-size:9px}
+  .exp{margin-top:14px}
+  .btn{background:var(--teal);color:#fff;border:0;padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:16px 20px 28px}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="back" href="index.html">← Portfolio</a>
+    <span class="demo">DEMO PREVIEW</span>
+    <h1>INDUS REPORT BUILDER</h1>
+  </div>
+  <div class="wrap">
+    <div class="benefit"><b>Why it helps:</b> instead of typing every line report by hand, the IE uploads the <b>Process Skill Tag</b> Excel and the tool auto-fills Op №, operation detail and machine for every workstation — grouped by operator. You just add problems, photos and corrective actions, then <b>export a finished per-line Excel report</b>. Minutes instead of hours. (Demo preview, dummy data.)</div>
+    <div class="frame">
+      <div class="bar"><span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span><span class="url">indus-report-builder</span></div>
+      <div class="app">
+        <h2>Production Layout — Operations Sequence</h2>
+        <div class="sub">Auto-filled from Process Tag · Line A-01 · Style 000-DEMO</div>
+        <div class="steps"><span class="step">1 · Import Process Tag</span><span class="step">2 · Auto-fill ops</span><span class="step">3 · Add problems/photos</span><span class="step">4 · Export Excel</span></div>
+        <table>
+          <thead><tr><th>Op №</th><th>Assembly operation</th><th>Machine</th><th>Problem found</th><th>Corrective action</th><th>Photo</th></tr></thead>
+          <tbody>
+            <tr><td>10</td><td>Shoulder join</td><td>OL 4T</td><td>Uneven SPI</td><td>Reset tension, retrain</td><td><span class="ph">photo</span></td></tr>
+            <tr><td>20</td><td>Neck rib join</td><td>OL 4T</td><td>Rib wavy</td><td>Guide attachment added</td><td><span class="ph">photo</span></td></tr>
+            <tr><td>30</td><td>Sleeve join</td><td>OL 4T</td><td>—</td><td>OK</td><td><span class="ph">photo</span></td></tr>
+            <tr><td>40</td><td>Side seam</td><td>OL 5T</td><td>Puckering</td><td>Presser foot pressure ↓</td><td><span class="ph">photo</span></td></tr>
+            <tr><td>50</td><td>Bottom hem</td><td>Flatlock</td><td>Skip stitch</td><td>Needle change DBx1</td><td><span class="ph">photo</span></td></tr>
+          </tbody>
+        </table>
+        <div class="exp"><button class="btn">⤓ Export finished report (.xlsx)</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">© 2026 SNOWTEX CI Team · Indus Report Builder — demo preview (dummy data) · Built by Hasan A. Azim</div>
+</body>
+</html>

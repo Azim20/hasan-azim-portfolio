@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Capacity Card — Sample Output (Demo)</title>
+<style>
+  :root{--navy:#2b2c6b;--purple:#6d5df0;--bg:#eef1f7;--card:#fff;--line:#e3e7ef;--text:#1f2430;--muted:#6b7385;--good:#12b76a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .top{background:linear-gradient(90deg,var(--navy),#3a3c8f);color:#fff;padding:14px 20px;text-align:center;position:relative}
+  .top h1{font-size:19px;letter-spacing:1px}
+  .demo{position:absolute;top:12px;right:16px;background:#f59e0b;color:#3a2a00;font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px}
+  .back{position:absolute;top:12px;left:16px;color:#c7d0e6;font-size:13px;text-decoration:none}.back:hover{color:#fff}
+  .wrap{max-width:1050px;margin:16px auto;padding:0 20px}
+  .box{background:#eaf1ff;border:1px solid #d5e3ff;border-radius:12px;padding:14px 18px;font-size:14px;color:#274690;margin-bottom:18px}
+  .btnrow{margin-bottom:16px}
+  .btn{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
+  .btn:hover{border-color:var(--purple);color:var(--purple)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .cc{background:var(--card);border:2px solid var(--navy);border-radius:12px;overflow:hidden;box-shadow:0 4px 14px rgba(20,30,60,.08)}
+  .cc .h{background:var(--navy);color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+  .cc .h b{font-size:14px;letter-spacing:1px}
+  .cc .h span{font-size:11px;opacity:.85}
+  .cc .op{padding:10px 12px 4px;font-size:16px;font-weight:800;color:var(--navy)}
+  .cc .mc{padding:0 12px 8px;font-size:12px;color:var(--muted)}
+  .cc table{width:100%;border-collapse:collapse;font-size:13px}
+  .cc td{padding:7px 12px;border-top:1px solid var(--line)}
+  .cc td.k{color:var(--muted)}.cc td.v{text-align:right;font-weight:700}
+  .cc .big{background:linear-gradient(135deg,var(--navy),var(--purple));color:#fff;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+  .cc .big .cap{font-size:26px;font-weight:800}
+  .cc .big .pib{text-align:right}.cc .big .pib .n{font-size:22px;font-weight:800}.cc .big .pib .t{font-size:10px;opacity:.85}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:16px 20px 26px}
+  @media print{.top,.box,.btnrow,.back,.demo,.foot{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="back" href="index.html">← Portfolio</a>
+    <span class="demo">SAMPLE · DUMMY DATA</span>
+    <h1>CAPACITY CARD GENERATOR — SAMPLE OUTPUT</h1>
+  </div>
+  <div class="wrap">
+    <div class="box"><b>What this shows:</b> the line IE just uploads the Process Skill Tag Excel and these capacity cards are auto-generated — capacity (pcs/hr) and PIB per operation — ready to print and hang at each workstation. No more writing cards by hand. (Dummy sample below; click Print to see the print layout.)</div>
+    <div class="btnrow"><button class="btn" onclick="window.print()">🖨 Print cards</button> <button class="btn" onclick="build()">↻ New sample</button></div>
+    <div class="cards" id="cards"></div>
+  </div>
+  <div class="foot">© 2026 SNOWTEX CI Team · Capacity Card — sample output (dummy data) · Built by Hasan A. Azim</div>
+<script>
+const OPS=[["Shoulder join","OL 4T"],["Neck rib join","OL 4T"],["Sleeve join","OL 4T"],["Side seam","OL 5T"],["Bottom hem","FL"],["Label attach","SNLS"]];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function build(){
+  document.getElementById('cards').innerHTML=OPS.map((o,i)=>{
+    const smv=(Math.random()*.6+.3).toFixed(2);
+    const cap100=Math.round(60/smv);            // 100% capacity pcs/hr
+    const target=Math.round(cap100*0.75);       // at 75% efficiency
+    const pib=Math.round(target*8);             // per 8-hr day (PIB pcs)
+    return `<div class="cc">
+      <div class="h"><b>CAPACITY CARD</b><span>Line A-01 · Style 000-DEMO</span></div>
+      <div class="op">WS ${i+1} · ${o[0]}</div>
+      <div class="mc">Machine: ${o[1]}</div>
+      <table>
+        <tr><td class="k">SMV</td><td class="v">${smv}</td></tr>
+        <tr><td class="k">100% Capacity</td><td class="v">${cap100} pcs/hr</td></tr>
+        <tr><td class="k">Target @ 75%</td><td class="v">${target} pcs/hr</td></tr>
+      </table>
+      <div class="big"><div><div class="cap">${target}</div><div style="font-size:10px;opacity:.85">TARGET pcs/hr</div></div>
+        <div class="pib"><div class="n">${pib}</div><div class="t">PIB / day (8h)</div></div></div>
+    </div>`;}).join('');
+}
+build();
+</script>
+</body>
+</html>
