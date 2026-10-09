@@ -11,9 +11,10 @@ Live at <https://hasan-azim-portfolio.pages.dev/>
 |---|---|
 | `index.html` | the portfolio itself — everything else is linked from it |
 | `pr-bot.html` | case study: the Oracle PR Booking Bot, written for an outside reader |
+| `checkpoint-bot.html` | case study: Checkpoint Portal Booking Automation (screens use demo data) |
 | `favicon.svg` | the browser-tab icon (HA monogram) |
 | `og-preview.png` | 1200×630 social card — what LinkedIn/WhatsApp show when the link is shared |
-| `img/` | screenshots used by `index.html` and `pr-bot.html` |
+| `img/` | screenshots used by `index.html`, `pr-bot.html` and `checkpoint-bot.html` (`cp_*.png` = Checkpoint demo screens) |
 | `st-layout.html` · `st-layout-sample.html` | sewing line layout period visual, and a sample output |
 | `capacity-card.html` · `capacity-card-sample.html` | capacity sticker generator, and a sample output |
 | `cutting-dashboard.html` | cutting section daily efficiency dashboard (dummy data) |
