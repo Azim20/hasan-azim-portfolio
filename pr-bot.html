@@ -134,7 +134,7 @@
     <div class="m"><b>1,000+</b><small>Tracking numbers processed by the team</small></div>
     <div class="m"><b>94%</b><small>Completed first time, across the runs reported back</small></div>
     <div class="m"><b>40+</b><small>Colleagues running it daily</small></div>
-    <div class="m"><b>1,149</b><small>Automated tests, each from a real failure</small></div>
+    <div class="m"><b>1,368</b><small>Automated tests, each from a real failure</small></div>
   </div>
 </div></div>
 
@@ -283,13 +283,52 @@
     <h3>Every live failure became a permanent test</h3>
     <p>When something goes wrong in real use, the fix is not finished until a test contains the
       system's own words from that run. That is why the suite is worth its size: it is not coverage
-      for its own sake, it is <b>1,149 things that can no longer come back quietly</b>.</p>
+      for its own sake, it is <b>1,368 things that can no longer come back quietly</b>.</p>
   </div>
 </div></section>
 
 <section><div class="wrap">
+  <h2>Since launch: version 2.0 to 2.1</h2>
+  <p class="sect-note">Real use keeps finding what testing did not. Each of these shipped to every copy
+    through the update channel, with nobody reinstalling anything.</p>
+  <div class="grid2">
+    <div class="card"><h3>Oracle changed its screen overnight</h3>
+      <p>A new layout put the column headings out of line with the cells beneath them. Because the bot
+        refuses to guess a column, it stopped rather than writing to the wrong one. Columns are now
+        matched by their position on screen, the way a person reads them.</p></div>
+    <div class="card"><h3>Brand-new BOMs had nothing to choose from</h3>
+      <p>On a new BOM, Oracle only offers the valid values for a required field after the first save.
+        The bot now saves first, expects and dismisses that refusal, then fills every row from the
+        cell's own list.</p></div>
+    <div class="card"><h3>"Could not read" is not "wrong"</h3>
+      <p>A screen still redrawing after a save was being reported as a failure. It now looks again
+        before deciding, so a tracking number no longer fails on its first run and passes on its second.</p></div>
+    <div class="card"><h3>Results that survive a restart</h3>
+      <p>Outcomes and PR numbers persist after the app is closed, past reports can be found and opened
+        from inside the app, and the review list ticks off each tracking number as its PR comes back.</p></div>
+  </div>
+</div></section>
+
+<section style="background:var(--surface)"><div class="wrap">
+  <h2>Making it outlive its author</h2>
+  <p class="sect-note">A tool forty people depend on cannot depend on one person.</p>
+  <p>The last piece was not code. I wrote a short governance procedure for tools like this one, so the
+    next one starts with a team rather than a person:</p>
+  <ul>
+    <li><b>Approval by risk.</b> A read-only helper needs a line manager's nod; anything that creates
+      or changes commercial records in the ERP goes to a review committee.</li>
+    <li><b>Two maintainers, always.</b> No critical tool goes live unless two people can each release
+      and fix it alone, and no tool may live on one person's personal account.</li>
+    <li><b>A handover that is checked, not promised.</b> When a developer leaves, the replacement
+      proves they can ship a fix on their own before the last day.</li>
+    <li><b>Notice before the system changes.</b> Tools register the screens they depend on, so an
+      ERP upgrade is tested against them before it reaches users, not after.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
   <h2>Where it stands</h2>
-  <p>It is live, in daily use, and stable. Across the runs colleagues reported back, <b>94% completed
+  <p>It is live at version 2.1.3, in daily use, and stable. Across the runs colleagues reported back, <b>94% completed
     first time</b>; of the remainder, a meaningful share were a Master BOM that had not been created
     yet or a dropped network connection — neither of which is an automation problem, and both of which
     would have stopped a person just as surely. Whatever the reason, those tracking numbers come back
